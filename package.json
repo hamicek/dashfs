@@ -24,11 +24,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/USER/dashfs.git"
+    "url": "https://github.com/hamicek/dashfs.git"
   },
-  "homepage": "https://github.com/USER/dashfs#readme",
+  "homepage": "https://github.com/hamicek/dashfs#readme",
   "bugs": {
-    "url": "https://github.com/USER/dashfs/issues"
+    "url": "https://github.com/hamicek/dashfs/issues"
   },
   "author": "",
   "license": "MIT",
