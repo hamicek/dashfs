@@ -242,121 +242,102 @@
     }
   
     :root {
-      --bg: #0f0f14;
-      --text: #e4e4e7;
-      --text-muted: #a1a1aa;
-      --text-subtle: #71717a;
-      --card-bg: #18181b;
-      --card-border: #27272a;
-      --card-shadow: rgba(0, 0, 0, 0.4);
-      --link-bg: #27272a;
-      --link-hover: #3f3f46;
-      --link-border-hover: #52525b;
-      --code-bg: #27272a;
-      --pre-bg: #09090b;
-      --pre-text: #e4e4e7;
-      --table-header: #27272a;
-      --accent: #8b5cf6;
-      --accent-secondary: #22c55e;
-      --accent-tertiary: #f59e0b;
+      --bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      --text: #ffecd2;
+      --text-muted: #fcb69f;
+      --text-subtle: #ff9a8b;
+      --card-bg: rgba(255, 255, 255, 0.08);
+      --card-border: rgba(255, 154, 139, 0.3);
+      --card-shadow: rgba(0, 0, 0, 0.2);
+      --link-bg: rgba(255, 255, 255, 0.05);
+      --link-hover: rgba(255, 154, 139, 0.2);
+      --link-border-hover: rgba(255, 154, 139, 0.5);
+      --code-bg: rgba(0, 0, 0, 0.3);
+      --pre-bg: rgba(0, 0, 0, 0.4);
+      --pre-text: #ffecd2;
+      --table-header: rgba(255, 154, 139, 0.1);
+      --accent: #ff9a8b;
+      --accent-secondary: #ffecd2;
     }
     body {
-      font-family: Inter, system-ui, -apple-system, sans-serif;
+      font-family: "Nunito", system-ui, -apple-system, sans-serif;
       margin: 0;
-      padding: 24px;
+      padding: 32px;
       background: var(--bg);
+      background-attachment: fixed;
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.6;
+      min-height: 100vh;
     }
     h1 {
       margin-top: 0;
-      margin-bottom: 4px;
-      font-size: 1.5rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    h1::before {
-      content: "";
-      width: 4px;
-      height: 28px;
-      background: linear-gradient(180deg, var(--accent) 0%, var(--accent-secondary) 100%);
-      border-radius: 2px;
+      margin-bottom: 8px;
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #ffecd2 0%, #fcb69f 50%, #ff9a8b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     p.description {
       margin-top: 0;
-      margin-bottom: 24px;
+      margin-bottom: 32px;
       color: var(--text-muted);
-      font-size: 0.875rem;
-      padding-left: 16px;
+      font-size: 1.05rem;
     }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
+      gap: 20px;
     }
     .card {
       background: var(--card-bg);
-      border-radius: 8px;
-      padding: 16px;
-      box-shadow: 0 4px 12px var(--card-shadow);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 20px var(--card-shadow);
       border: 1px solid var(--card-border);
     }
     .card h2 {
       margin-top: 0;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       font-size: 0.75rem;
-      font-weight: 500;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      letter-spacing: 0.12em;
+      color: var(--accent);
     }
-    .card h2::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
-    .card[data-section="repos"] h2::before { background: var(--accent-secondary); }
-    .card[data-section="notes"] h2::before { background: var(--accent-tertiary); }
-    .card[data-section="images"] h2::before { background: #ec4899; }
-    .card[data-section="links"] h2::before { background: #06b6d4; }
-    .card[data-section="noteApps"] h2::before { background: #f97316; }
-    .card[data-section="quickNotes"] h2::before { background: #84cc16; }
     .links {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
     }
     .links a {
       display: inline-flex;
       align-items: center;
       text-decoration: none;
-      font-size: 0.8125rem;
-      padding: 6px 12px;
-      border-radius: 6px;
+      font-size: 0.875rem;
+      padding: 8px 14px;
+      border-radius: 20px;
       border: 1px solid var(--card-border);
       background: var(--link-bg);
       color: var(--text);
-      transition: all 0.15s ease;
+      transition: all 0.25s ease;
       cursor: pointer;
     }
     .links a:hover {
       background: var(--link-hover);
       border-color: var(--link-border-hover);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 154, 139, 0.2);
     }
     ul {
       padding-left: 20px;
       margin: 0;
     }
     li {
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     em {
       color: var(--text-subtle);
@@ -364,13 +345,14 @@
 
     /* Modal styling */
     .md-modal {
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(26, 26, 46, 0.9);
     }
     .md-modal-content {
-      background: var(--card-bg);
-      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(22, 33, 62, 0.95) 0%, rgba(15, 52, 96, 0.95) 100%);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
       border: 1px solid var(--card-border);
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
     }
     .md-modal-header {
       border-bottom: 1px solid var(--card-border);
@@ -379,26 +361,26 @@
       color: var(--text-muted);
     }
     .md-modal-close:hover {
-      background: var(--link-bg);
-      color: var(--text);
+      background: var(--link-hover);
+      color: var(--accent);
     }
 
     /* Markdown styling */
     .md-content h1, .md-content h2, .md-content h3 {
-      color: var(--text);
+      color: var(--accent-secondary);
     }
     .md-content h1, .md-content h2 {
       border-bottom: 1px solid var(--card-border);
     }
     .md-content code {
       background: var(--code-bg);
-      font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+      font-family: "Fira Code", ui-monospace, monospace;
       color: var(--accent);
     }
     .md-content pre {
       background: var(--pre-bg);
       color: var(--pre-text);
-      border: 1px solid var(--card-border);
+      border-radius: 12px;
     }
     .md-content blockquote {
       border-left: 3px solid var(--accent);
@@ -416,14 +398,6 @@
     .md-content th {
       background: var(--table-header);
     }
-
-    /* Syntax highlighting */
-    .md-content .hljs-keyword { color: #c678dd; }
-    .md-content .hljs-string { color: #98c379; }
-    .md-content .hljs-number { color: #d19a66; }
-    .md-content .hljs-comment { color: #5c6370; font-style: italic; }
-    .md-content .hljs-function { color: #61afef; }
-    .md-content .hljs-class { color: #e5c07b; }
 
     /* Inline editing */
     .editable:hover {
@@ -449,7 +423,7 @@
       color: var(--text-subtle);
     }
     .quick-note-delete:hover {
-      background: #ef4444;
+      background: #ff6b6b;
       color: white;
     }
     .todo-checkbox {
@@ -464,6 +438,7 @@
       background: var(--link-bg);
       border: 1px dashed var(--card-border);
       color: var(--text-muted);
+      border-radius: 20px;
     }
     .add-note-btn:hover {
       background: var(--link-hover);
@@ -473,9 +448,9 @@
 
     /* Save indicator */
     .save-indicator {
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
-      color: white;
-      font-weight: 500;
+      background: linear-gradient(90deg, #ff9a8b 0%, #fcb69f 100%);
+      color: #1a1a2e;
+      font-weight: 600;
     }
 
     /* Drag & Drop */
@@ -484,11 +459,11 @@
     }
     .card.drag-over {
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px var(--accent), 0 4px 12px var(--card-shadow);
+      box-shadow: 0 0 20px rgba(255, 154, 139, 0.3);
     }
   </style>
 </head>
-<body class="theme-dashboard">
+<body class="theme-sunset">
   <h1 class="editable" contenteditable="true" data-field="title">Client Website Redesign</h1>
   <p class="description editable" contenteditable="true" data-field="description" data-placeholder="Add description...">Complete redesign of client's e-commerce website with new branding</p>
 
