@@ -371,42 +371,85 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    /* Drag & Drop styles */
+    .card {
+      position: relative;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .card-header h2 {
+      margin: 0;
+      flex: 1;
+    }
+    .drag-handle {
+      cursor: grab;
+      padding: 4px;
+      color: var(--text-subtle);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card:hover .drag-handle {
+      opacity: 1;
+    }
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+    .drag-handle svg {
+      width: 16px;
+      height: 16px;
+    }
+    .card.dragging {
+      opacity: 0.5;
+      transform: scale(0.98);
+    }
+    .card.drag-over {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
   </style>
 </head>
 <body>
   <h1 class="editable" contenteditable="true" data-field="title">Habit Tracker App</h1>
   <p class="description editable" contenteditable="true" data-field="description" data-placeholder="Add description...">Personal habit tracking app with streaks and statistics</p>
 
-  <div class="grid">
-    
-
-    <section class="card">
-      <h2>Repositories</h2>
-      <div class="links">
-        <a href="vscode://file//Users/miroslavhalabrin/Projekty/dashfs/repos/dashfs/examples/personal-app/repos/my-app">Habit Tracker</a>
+  <div class="grid" id="sectionsGrid">
+    <section class="card" data-section="repos" draggable="true">
+      <div class="card-header">
+        <span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg></span>
+        <h2>Repositories</h2>
       </div>
+      <div class="links"><a href="vscode://file//Users/miroslavhalabrin/Projekty/dashfs/repos/dashfs/examples/personal-app/repos/my-app">Habit Tracker</a></div>
     </section>
 
-    <section class="card">
-      <h2>Notes</h2>
-      <div class="links">
-        <a href="#" class="md-link" data-path="notes/ideas.md">Ideas</a><a href="#" class="md-link" data-path="notes/architecture.md">Architecture</a>
+    <section class="card" data-section="notes" draggable="true">
+      <div class="card-header">
+        <span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg></span>
+        <h2>Notes</h2>
       </div>
+      <div class="links"><a href="#" class="md-link" data-path="notes/ideas.md">Ideas</a><a href="#" class="md-link" data-path="notes/architecture.md">Architecture</a></div>
     </section>
 
-    
-
-    <section class="card">
-      <h2>External Links</h2>
-      <div class="links">
-        <a href="https://github.com/me/habit-tracker" target="_blank" rel="noreferrer">GitHub</a><a href="https://habit-tracker.vercel.app" target="_blank" rel="noreferrer">Vercel Deploy</a>
+    <section class="card" data-section="links" draggable="true">
+      <div class="card-header">
+        <span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg></span>
+        <h2>External Links</h2>
       </div>
+      <div class="links"><a href="https://github.com/me/habit-tracker" target="_blank" rel="noreferrer">GitHub</a><a href="https://habit-tracker.vercel.app" target="_blank" rel="noreferrer">Vercel Deploy</a></div>
     </section>
 
-    
-
-    <section class="card" id="quickNotesSection">
-      <h2>Quick Notes</h2>
+    <section class="card" data-section="quickNotes" id="quickNotesSection" draggable="true">
+      <div class="card-header">
+        <span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg></span>
+        <h2>Quick Notes</h2>
+      </div>
       <div class="quick-notes-list" id="quickNotesList"><div class="quick-note-item">
       <span class="quick-note-text editable" contenteditable="true" data-note-index="0">Stack: Next.js + Prisma + PostgreSQL</span>
       <button class="quick-note-delete" data-note-index="0" title="Delete note">&times;</button>
@@ -706,9 +749,82 @@
       });
     }
 
+    // ========== DRAG & DROP ==========
+    let draggedSection = null;
+
+    function setupDragAndDrop() {
+      const grid = document.getElementById('sectionsGrid');
+      const cards = grid.querySelectorAll('.card[data-section]');
+
+      cards.forEach(card => {
+        // Drag start
+        card.addEventListener('dragstart', (e) => {
+          draggedSection = card;
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', card.dataset.section);
+        });
+
+        // Drag end
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+          draggedSection = null;
+          // Remove all drag-over classes
+          cards.forEach(c => c.classList.remove('drag-over'));
+        });
+
+        // Drag over
+        card.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (card !== draggedSection) {
+            card.classList.add('drag-over');
+          }
+        });
+
+        // Drag leave
+        card.addEventListener('dragleave', () => {
+          card.classList.remove('drag-over');
+        });
+
+        // Drop
+        card.addEventListener('drop', (e) => {
+          e.preventDefault();
+          card.classList.remove('drag-over');
+
+          if (draggedSection && draggedSection !== card) {
+            // Get current order from DOM
+            const allCards = Array.from(grid.querySelectorAll('.card[data-section]'));
+            const draggedIndex = allCards.indexOf(draggedSection);
+            const targetIndex = allCards.indexOf(card);
+
+            // Reorder in DOM
+            if (draggedIndex < targetIndex) {
+              card.parentNode.insertBefore(draggedSection, card.nextSibling);
+            } else {
+              card.parentNode.insertBefore(draggedSection, card);
+            }
+
+            // Save new order to config
+            saveSectionOrder();
+          }
+        });
+      });
+    }
+
+    function saveSectionOrder() {
+      if (!currentConfig) return;
+      const grid = document.getElementById('sectionsGrid');
+      const cards = grid.querySelectorAll('.card[data-section]');
+      const order = Array.from(cards).map(c => c.dataset.section);
+      currentConfig.sectionOrder = order;
+      saveConfig();
+    }
+
     // Initialize
     loadConfig().then(() => {
       setupQuickNoteListeners();
+      setupDragAndDrop();
     });
   </script>
   <div class="save-indicator" id="saveIndicator">Saved</div>

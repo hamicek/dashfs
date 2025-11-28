@@ -1,6 +1,11 @@
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { resolve, extname } from "path";
-import { ProjectConfig, CONFIG_FILE, OUTPUT_FILE } from "../types.js";
+import { ProjectConfig, CONFIG_FILE, OUTPUT_FILE, SectionType } from "../types.js";
+
+// Default section order
+const DEFAULT_SECTION_ORDER: SectionType[] = [
+  "docs", "repos", "notes", "images", "links", "noteApps", "quickNotes"
+];
 
 export async function generate() {
   const cwd = process.cwd();
@@ -115,6 +120,39 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       <button class="add-note-btn" id="addNoteBtn">+ Add note</button>
       <button class="add-note-btn" id="addTodoBtn">+ Add TODO</button>
     </div>`;
+
+  // Drag handle SVG icon
+  const dragHandleIcon = `<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg>`;
+
+  // Section definitions
+  const sections: Record<SectionType, { title: string; content: string; hasContent: boolean }> = {
+    docs: { title: "Documents", content: docsBlock, hasContent: Boolean(hasDocs) },
+    repos: { title: "Repositories", content: reposBlock, hasContent: Boolean(hasRepos) },
+    notes: { title: "Notes", content: notesBlock, hasContent: Boolean(hasNotes) },
+    images: { title: "Design / Images", content: imagesBlock, hasContent: Boolean(hasImages) },
+    links: { title: "External Links", content: linksBlock, hasContent: Boolean(hasLinks) },
+    noteApps: { title: "Note Apps", content: notesAppsBlock, hasContent: Boolean(hasNotesApps) },
+    quickNotes: { title: "Quick Notes", content: quickNotesBlock, hasContent: true },
+  };
+
+  // Get section order from config or use default
+  const sectionOrder = cfg.sectionOrder ?? DEFAULT_SECTION_ORDER;
+
+  // Generate sections HTML
+  const sectionsHtml = sectionOrder
+    .filter((key) => sections[key]?.hasContent)
+    .map((key) => {
+      const section = sections[key];
+      const isQuickNotes = key === "quickNotes";
+      return `<section class="card" data-section="${key}"${isQuickNotes ? ' id="quickNotesSection"' : ''} draggable="true">
+      <div class="card-header">
+        <span class="drag-handle" title="Drag to reorder">${dragHandleIcon}</span>
+        <h2>${section.title}</h2>
+      </div>
+      ${isQuickNotes ? section.content : `<div class="links">${section.content}</div>`}
+    </section>`;
+    })
+    .join("\n\n    ");
 
   return `<!doctype html>
 <html lang="cs">
@@ -489,59 +527,57 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       opacity: 1;
       transform: translateY(0);
     }
+
+    /* Drag & Drop styles */
+    .card {
+      position: relative;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .card-header h2 {
+      margin: 0;
+      flex: 1;
+    }
+    .drag-handle {
+      cursor: grab;
+      padding: 4px;
+      color: var(--text-subtle);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card:hover .drag-handle {
+      opacity: 1;
+    }
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+    .drag-handle svg {
+      width: 16px;
+      height: 16px;
+    }
+    .card.dragging {
+      opacity: 0.5;
+      transform: scale(0.98);
+    }
+    .card.drag-over {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
   </style>
 </head>
 <body>
   <h1 class="editable" contenteditable="true" data-field="title">${esc(cfg.title)}</h1>
   <p class="description editable" contenteditable="true" data-field="description" data-placeholder="Add description...">${cfg.description ? esc(cfg.description) : ""}</p>
 
-  <div class="grid">
-    ${hasDocs ? `<section class="card">
-      <h2>Documents</h2>
-      <div class="links">
-        ${docsBlock}
-      </div>
-    </section>` : ""}
-
-    ${hasRepos ? `<section class="card">
-      <h2>Repositories</h2>
-      <div class="links">
-        ${reposBlock}
-      </div>
-    </section>` : ""}
-
-    ${hasNotes ? `<section class="card">
-      <h2>Notes</h2>
-      <div class="links">
-        ${notesBlock}
-      </div>
-    </section>` : ""}
-
-    ${hasImages ? `<section class="card">
-      <h2>Design / Images</h2>
-      <div class="links">
-        ${imagesBlock}
-      </div>
-    </section>` : ""}
-
-    ${hasLinks ? `<section class="card">
-      <h2>External Links</h2>
-      <div class="links">
-        ${linksBlock}
-      </div>
-    </section>` : ""}
-
-    ${hasNotesApps ? `<section class="card">
-      <h2>Note Apps</h2>
-      <div class="links">
-        ${notesAppsBlock}
-      </div>
-    </section>` : ""}
-
-    <section class="card" id="quickNotesSection">
-      <h2>Quick Notes</h2>
-      ${quickNotesBlock}
-    </section>
+  <div class="grid" id="sectionsGrid">
+    ${sectionsHtml}
   </div>
 
   <!-- MD Viewer Modal -->
@@ -826,9 +862,82 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       });
     }
 
+    // ========== DRAG & DROP ==========
+    let draggedSection = null;
+
+    function setupDragAndDrop() {
+      const grid = document.getElementById('sectionsGrid');
+      const cards = grid.querySelectorAll('.card[data-section]');
+
+      cards.forEach(card => {
+        // Drag start
+        card.addEventListener('dragstart', (e) => {
+          draggedSection = card;
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', card.dataset.section);
+        });
+
+        // Drag end
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+          draggedSection = null;
+          // Remove all drag-over classes
+          cards.forEach(c => c.classList.remove('drag-over'));
+        });
+
+        // Drag over
+        card.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (card !== draggedSection) {
+            card.classList.add('drag-over');
+          }
+        });
+
+        // Drag leave
+        card.addEventListener('dragleave', () => {
+          card.classList.remove('drag-over');
+        });
+
+        // Drop
+        card.addEventListener('drop', (e) => {
+          e.preventDefault();
+          card.classList.remove('drag-over');
+
+          if (draggedSection && draggedSection !== card) {
+            // Get current order from DOM
+            const allCards = Array.from(grid.querySelectorAll('.card[data-section]'));
+            const draggedIndex = allCards.indexOf(draggedSection);
+            const targetIndex = allCards.indexOf(card);
+
+            // Reorder in DOM
+            if (draggedIndex < targetIndex) {
+              card.parentNode.insertBefore(draggedSection, card.nextSibling);
+            } else {
+              card.parentNode.insertBefore(draggedSection, card);
+            }
+
+            // Save new order to config
+            saveSectionOrder();
+          }
+        });
+      });
+    }
+
+    function saveSectionOrder() {
+      if (!currentConfig) return;
+      const grid = document.getElementById('sectionsGrid');
+      const cards = grid.querySelectorAll('.card[data-section]');
+      const order = Array.from(cards).map(c => c.dataset.section);
+      currentConfig.sectionOrder = order;
+      saveConfig();
+    }
+
     // Initialize
     loadConfig().then(() => {
       setupQuickNoteListeners();
+      setupDragAndDrop();
     });
   </script>
   <div class="save-indicator" id="saveIndicator">Saved</div>

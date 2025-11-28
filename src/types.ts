@@ -23,6 +23,9 @@ export type ExtLink = {
   url: string;
 };
 
+// Available section types for ordering
+export type SectionType = "docs" | "repos" | "notes" | "images" | "links" | "noteApps" | "quickNotes";
+
 export type ProjectConfig = {
   title: string;
   description?: string;
@@ -35,6 +38,7 @@ export type ProjectConfig = {
   images?: ImageLink[];
   links?: ExtLink[];
   quickNotes?: string[];
+  sectionOrder?: SectionType[];
 };
 
 export const CONFIG_FILE = "project.config.json";
