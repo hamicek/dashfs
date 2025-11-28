@@ -21,6 +21,9 @@ const MIME_TYPES: Record<string, string> = {
   ".webp": "image/webp",
 };
 
+// SSE clients for live reload
+let sseClients: Array<{ res: import("http").ServerResponse }> = [];
+
 export async function serve(port: number = 3030, watchMode: boolean = false) {
   const cwd = process.cwd();
   const configPath = resolve(cwd, CONFIG_FILE);
@@ -42,6 +45,23 @@ export async function serve(port: number = 3030, watchMode: boolean = false) {
 
   const server = createServer((req, res) => {
     let url = req.url || "/";
+
+    // SSE endpoint for live reload
+    if (watchMode && url === "/__live-reload") {
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Access-Control-Allow-Origin": "*",
+      });
+      res.write("data: connected\n\n");
+      sseClients.push({ res });
+
+      req.on("close", () => {
+        sseClients = sseClients.filter((c) => c.res !== res);
+      });
+      return;
+    }
 
     // Default to dashboard.html
     if (url === "/") {
@@ -71,7 +91,28 @@ export async function serve(port: number = 3030, watchMode: boolean = false) {
     const mimeType = MIME_TYPES[ext] || "application/octet-stream";
 
     try {
-      const content = readFileSync(filePath);
+      let content: Buffer | string = readFileSync(filePath);
+
+      // Inject live reload script into HTML in watch mode
+      if (watchMode && ext === ".html") {
+        const liveReloadScript = `
+<script>
+(function() {
+  const es = new EventSource('/__live-reload');
+  es.onmessage = function(e) {
+    if (e.data === 'reload') {
+      window.location.reload();
+    }
+  };
+  es.onerror = function() {
+    setTimeout(() => window.location.reload(), 1000);
+  };
+})();
+</script>
+`;
+        content = content.toString().replace("</body>", liveReloadScript + "</body>");
+      }
+
       res.writeHead(200, { "Content-Type": mimeType });
       res.end(content);
     } catch {
@@ -111,7 +152,11 @@ export async function serve(port: number = 3030, watchMode: boolean = false) {
           console.log(`🔄 Config changed, regenerating...`);
           try {
             await generate();
-            console.log(`✅ Dashboard updated. Refresh browser to see changes.`);
+            console.log(`✅ Dashboard updated.`);
+            // Notify all SSE clients to reload
+            for (const client of sseClients) {
+              client.res.write("data: reload\n\n");
+            }
           } catch (err) {
             console.error(`❌ Error: ${(err as Error).message}`);
           }
