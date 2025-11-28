@@ -1,6 +1,7 @@
 {
   "title": "Habit Tracker App",
   "description": "Personal habit tracking app with streaks and statistics",
+  "theme": "terminal",
   "repos": [
     { "label": "Habit Tracker", "path": "repos/my-app" }
   ],

@@ -5,118 +5,11 @@
   <title>Habit Tracker App</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232563eb'/><path d='M25 30h50M25 50h35M25 70h45' stroke='white' stroke-width='8' stroke-linecap='round'/></svg>">
   <style>
-    :root {
-      --bg: #f5f5f7;
-      --text: #111827;
-      --text-muted: #4b5563;
-      --text-subtle: #6b7280;
-      --card-bg: #ffffff;
-      --card-border: #e5e7eb;
-      --card-shadow: rgba(0,0,0,0.08);
-      --link-bg: #f9fafb;
-      --link-hover: #e5e7eb;
-      --link-border-hover: #d1d5db;
-      --code-bg: #f3f4f6;
-      --pre-bg: #1f2937;
-      --pre-text: #f9fafb;
-      --table-header: #f9fafb;
-      --accent: #2563eb;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #111827;
-        --text: #f9fafb;
-        --text-muted: #9ca3af;
-        --text-subtle: #6b7280;
-        --card-bg: #1f2937;
-        --card-border: #374151;
-        --card-shadow: rgba(0,0,0,0.3);
-        --link-bg: #374151;
-        --link-hover: #4b5563;
-        --link-border-hover: #6b7280;
-        --code-bg: #374151;
-        --pre-bg: #0f172a;
-        --pre-text: #f9fafb;
-        --table-header: #374151;
-        --accent: #3b82f6;
-      }
-    }
     * {
       box-sizing: border-box;
     }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 0;
-      padding: 24px;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-    }
-    h1 {
-      margin-top: 0;
-      margin-bottom: 8px;
-      font-size: 1.75rem;
-    }
-    p.description {
-      margin-top: 0;
-      margin-bottom: 24px;
-      color: var(--text-muted);
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-    }
-    .card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 1px 3px var(--card-shadow);
-      border: 1px solid var(--card-border);
-    }
-    .card h2 {
-      margin-top: 0;
-      margin-bottom: 12px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-subtle);
-    }
-    .links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .links a {
-      display: inline-flex;
-      align-items: center;
-      text-decoration: none;
-      font-size: 0.875rem;
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--card-border);
-      background: var(--link-bg);
-      color: var(--text);
-      transition: all 0.15s ease;
-      cursor: pointer;
-    }
-    .links a:hover {
-      background: var(--link-hover);
-      border-color: var(--link-border-hover);
-    }
-    ul {
-      padding-left: 20px;
-      margin: 0;
-    }
-    li {
-      margin-bottom: 4px;
-    }
-    em {
-      color: var(--text-subtle);
-    }
 
-    /* MD Viewer Modal */
+    /* MD Viewer Modal - structure */
     .md-modal {
       display: none;
       position: fixed;
@@ -124,7 +17,6 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
       z-index: 1000;
       justify-content: center;
       align-items: center;
@@ -134,22 +26,18 @@
       display: flex;
     }
     .md-modal-content {
-      background: var(--card-bg);
-      border-radius: 16px;
       max-width: 800px;
       width: 100%;
       max-height: 90vh;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }
     .md-modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 16px 20px;
-      border-bottom: 1px solid var(--card-border);
     }
     .md-modal-header h3 {
       margin: 0;
@@ -161,13 +49,8 @@
       border: none;
       font-size: 1.5rem;
       cursor: pointer;
-      color: var(--text-subtle);
       padding: 4px 8px;
       border-radius: 6px;
-    }
-    .md-modal-close:hover {
-      background: var(--link-bg);
-      color: var(--text);
     }
     .md-modal-body {
       padding: 20px;
@@ -175,7 +58,7 @@
       flex: 1;
     }
 
-    /* Markdown Styles */
+    /* Markdown content - structure */
     .md-content {
       line-height: 1.7;
     }
@@ -185,23 +68,19 @@
       font-weight: 600;
       line-height: 1.3;
     }
-    .md-content h1 { font-size: 1.75rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.3em; }
-    .md-content h2 { font-size: 1.5rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.3em; }
+    .md-content h1 { font-size: 1.75rem; padding-bottom: 0.3em; }
+    .md-content h2 { font-size: 1.5rem; padding-bottom: 0.3em; }
     .md-content h3 { font-size: 1.25rem; }
     .md-content h4 { font-size: 1rem; }
     .md-content p { margin: 1em 0; }
     .md-content ul, .md-content ol { margin: 1em 0; padding-left: 2em; }
     .md-content li { margin: 0.25em 0; }
     .md-content code {
-      background: var(--code-bg);
       padding: 0.2em 0.4em;
       border-radius: 4px;
       font-size: 0.9em;
-      font-family: ui-monospace, "SF Mono", Menlo, Monaco, monospace;
     }
     .md-content pre {
-      background: var(--pre-bg);
-      color: var(--pre-text);
       padding: 16px;
       border-radius: 8px;
       overflow-x: auto;
@@ -213,13 +92,10 @@
       color: inherit;
     }
     .md-content blockquote {
-      border-left: 4px solid var(--card-border);
       margin: 1em 0;
       padding-left: 1em;
-      color: var(--text-muted);
     }
     .md-content a {
-      color: var(--accent);
       text-decoration: none;
     }
     .md-content a:hover {
@@ -227,7 +103,6 @@
     }
     .md-content hr {
       border: none;
-      border-top: 1px solid var(--card-border);
       margin: 2em 0;
     }
     .md-content img {
@@ -240,42 +115,22 @@
       margin: 1em 0;
     }
     .md-content th, .md-content td {
-      border: 1px solid var(--card-border);
       padding: 8px 12px;
       text-align: left;
     }
-    .md-content th {
-      background: var(--table-header);
-      font-weight: 600;
-    }
 
-    /* Syntax highlighting */
-    .md-content .hljs-keyword { color: #c678dd; }
-    .md-content .hljs-string { color: #98c379; }
-    .md-content .hljs-number { color: #d19a66; }
-    .md-content .hljs-comment { color: #5c6370; font-style: italic; }
-    .md-content .hljs-function { color: #61afef; }
-    .md-content .hljs-class { color: #e5c07b; }
-
-    /* Inline editing styles */
+    /* Inline editing - structure */
     .editable {
       cursor: text;
       border-radius: 4px;
       transition: background 0.15s ease;
     }
-    .editable:hover {
-      background: var(--link-bg);
-    }
-    .editable:focus {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-      background: var(--link-bg);
-    }
     .editable[data-placeholder]:empty::before {
       content: attr(data-placeholder);
-      color: var(--text-subtle);
       font-style: italic;
     }
+
+    /* Quick notes - structure */
     .quick-notes-list {
       list-style: none;
       padding: 0;
@@ -286,10 +141,6 @@
       align-items: flex-start;
       gap: 8px;
       padding: 8px 0;
-      border-bottom: 1px solid var(--card-border);
-    }
-    .quick-note-item:last-child {
-      border-bottom: none;
     }
     .quick-note-text {
       flex: 1;
@@ -298,7 +149,6 @@
     .quick-note-delete {
       background: none;
       border: none;
-      color: var(--text-subtle);
       cursor: pointer;
       padding: 2px 6px;
       border-radius: 4px;
@@ -309,41 +159,22 @@
     .quick-note-item:hover .quick-note-delete {
       opacity: 1;
     }
-    .quick-note-delete:hover {
-      background: #ef4444;
-      color: white;
-    }
-    /* TODO checkbox styles */
     .todo-checkbox {
       width: 18px;
       height: 18px;
       margin: 0;
       cursor: pointer;
-      accent-color: var(--accent);
       flex-shrink: 0;
-    }
-    .todo-item.completed .quick-note-text {
-      text-decoration: line-through;
-      color: var(--text-subtle);
     }
     .add-note-btn {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      margin-top: 12px;
       padding: 6px 12px;
-      background: var(--link-bg);
-      border: 1px dashed var(--card-border);
       border-radius: 8px;
-      color: var(--text-muted);
       cursor: pointer;
       font-size: 0.875rem;
       transition: all 0.15s ease;
-    }
-    .add-note-btn:hover {
-      background: var(--link-hover);
-      border-color: var(--link-border-hover);
-      color: var(--text);
     }
     .add-note-actions {
       display: flex;
@@ -353,13 +184,13 @@
     .add-note-actions .add-note-btn {
       margin-top: 0;
     }
+
+    /* Save indicator */
     .save-indicator {
       position: fixed;
       bottom: 20px;
       right: 20px;
       padding: 10px 16px;
-      background: var(--accent);
-      color: white;
       border-radius: 8px;
       font-size: 0.875rem;
       opacity: 0;
@@ -372,7 +203,7 @@
       transform: translateY(0);
     }
 
-    /* Drag & Drop styles */
+    /* Drag & Drop - structure */
     .card {
       position: relative;
     }
@@ -389,7 +220,6 @@
     .drag-handle {
       cursor: grab;
       padding: 4px;
-      color: var(--text-subtle);
       opacity: 0;
       transition: opacity 0.15s ease;
       display: flex;
@@ -410,13 +240,284 @@
       opacity: 0.5;
       transform: scale(0.98);
     }
+  
+    :root {
+      --bg: #0a0a0a;
+      --text: #33ff33;
+      --text-muted: #22aa22;
+      --text-subtle: #1a8a1a;
+      --card-bg: #111111;
+      --card-border: #1a1a1a;
+      --card-shadow: rgba(0,255,0,0.1);
+      --link-bg: #0a0a0a;
+      --link-hover: #1a1a1a;
+      --link-border-hover: #33ff33;
+      --code-bg: #1a1a1a;
+      --pre-bg: #000000;
+      --pre-text: #33ff33;
+      --table-header: #1a1a1a;
+      --accent: #33ff33;
+    }
+    body {
+      font-family: ui-monospace, "SF Mono", "Cascadia Code", "Fira Code", Menlo, Monaco, "Courier New", monospace;
+      margin: 0;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15),
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+    h1 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1.5rem;
+      font-weight: normal;
+      text-shadow: 0 0 10px var(--accent);
+    }
+    h1::before {
+      content: "> ";
+      color: var(--text-muted);
+    }
+    p.description {
+      margin-top: 0;
+      margin-bottom: 24px;
+      color: var(--text-muted);
+    }
+    p.description::before {
+      content: "# ";
+      color: var(--text-subtle);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 0;
+      padding: 16px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.05);
+    }
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 0.875rem;
+      font-weight: normal;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      border-bottom: 1px dashed var(--card-border);
+      padding-bottom: 8px;
+    }
+    .card h2::before {
+      content: "[ ";
+    }
+    .card h2::after {
+      content: " ]";
+    }
+    .links {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .links a {
+      display: block;
+      text-decoration: none;
+      font-size: 0.875rem;
+      padding: 4px 8px;
+      border-radius: 0;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      transition: all 0.1s ease;
+      cursor: pointer;
+    }
+    .links a::before {
+      content: "→ ";
+      color: var(--text-subtle);
+    }
+    .links a:hover {
+      background: var(--link-hover);
+      color: var(--accent);
+      text-shadow: 0 0 5px var(--accent);
+    }
+    .links a:hover::before {
+      content: "► ";
+      color: var(--accent);
+    }
+    ul {
+      padding-left: 20px;
+      margin: 0;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+    li::marker {
+      color: var(--text-subtle);
+    }
+    em {
+      color: var(--text-subtle);
+      font-style: normal;
+    }
+
+    /* Modal styling */
+    .md-modal {
+      background: rgba(0, 0, 0, 0.9);
+    }
+    .md-modal-content {
+      background: var(--card-bg);
+      border-radius: 0;
+      border: 1px solid var(--text-subtle);
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+    }
+    .md-modal-header {
+      border-bottom: 1px dashed var(--card-border);
+    }
+    .md-modal-header h3::before {
+      content: "FILE: ";
+      color: var(--text-subtle);
+    }
+    .md-modal-close {
+      color: var(--text-muted);
+    }
+    .md-modal-close:hover {
+      color: var(--accent);
+      background: transparent;
+      text-shadow: 0 0 5px var(--accent);
+    }
+
+    /* Markdown styling */
+    .md-content h1, .md-content h2, .md-content h3 {
+      color: var(--accent);
+      border-bottom: 1px dashed var(--card-border);
+    }
+    .md-content code {
+      background: var(--code-bg);
+      font-family: inherit;
+      color: var(--accent);
+    }
+    .md-content pre {
+      background: var(--pre-bg);
+      color: var(--pre-text);
+      border: 1px solid var(--card-border);
+    }
+    .md-content blockquote {
+      border-left: 2px solid var(--accent);
+      color: var(--text-muted);
+    }
+    .md-content a {
+      color: var(--accent);
+    }
+    .md-content hr {
+      border-top: 1px dashed var(--card-border);
+    }
+    .md-content th, .md-content td {
+      border: 1px solid var(--card-border);
+    }
+    .md-content th {
+      background: var(--table-header);
+    }
+
+    /* Syntax highlighting - terminal style */
+    .md-content .hljs-keyword { color: #ff6666; }
+    .md-content .hljs-string { color: #66ff66; }
+    .md-content .hljs-number { color: #ffff66; }
+    .md-content .hljs-comment { color: #666666; }
+    .md-content .hljs-function { color: #66ffff; }
+    .md-content .hljs-class { color: #ff66ff; }
+
+    /* Inline editing */
+    .editable:hover {
+      background: var(--link-hover);
+    }
+    .editable:focus {
+      outline: 1px solid var(--accent);
+      outline-offset: 2px;
+      background: var(--link-hover);
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+    }
+    .editable[data-placeholder]:empty::before {
+      color: var(--text-subtle);
+    }
+
+    /* Quick notes */
+    .quick-note-item {
+      border-bottom: 1px dashed var(--card-border);
+    }
+    .quick-note-item:last-child {
+      border-bottom: none;
+    }
+    .quick-note-item::before {
+      content: "- ";
+      color: var(--text-subtle);
+    }
+    .quick-note-delete {
+      color: var(--text-subtle);
+    }
+    .quick-note-delete:hover {
+      background: #ff3333;
+      color: #000;
+    }
+    .todo-checkbox {
+      accent-color: var(--accent);
+    }
+    .todo-item::before {
+      content: "";
+    }
+    .todo-item.completed .quick-note-text {
+      text-decoration: line-through;
+      color: var(--text-subtle);
+    }
+    .add-note-btn {
+      margin-top: 12px;
+      background: transparent;
+      border: 1px dashed var(--card-border);
+      color: var(--text-muted);
+    }
+    .add-note-btn:hover {
+      background: var(--link-hover);
+      border-color: var(--accent);
+      color: var(--accent);
+      text-shadow: 0 0 5px var(--accent);
+    }
+
+    /* Save indicator */
+    .save-indicator {
+      background: var(--accent);
+      color: #000;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* Drag & Drop */
+    .drag-handle {
+      color: var(--text-subtle);
+    }
     .card.drag-over {
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px var(--accent);
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
     }
   </style>
 </head>
-<body>
+<body class="theme-terminal">
   <h1 class="editable" contenteditable="true" data-field="title">Habit Tracker App</h1>
   <p class="description editable" contenteditable="true" data-field="description" data-placeholder="Add description...">Personal habit tracking app with streaks and statistics</p>
 
@@ -489,9 +590,9 @@
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         // Code blocks
-        .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>')
+        .replace(/\`\`\`(\w*)\n([\s\S]*?)\`\`\`/g, '<pre><code class="language-$1">$2</code></pre>')
         // Inline code
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\`([^\`]+)\`/g, '<code>$1</code>')
         // Headers
         .replace(/^#### (.*)$/gm, '<h4>$1</h4>')
         .replace(/^### (.*)$/gm, '<h3>$1</h3>')
@@ -504,7 +605,7 @@
         // Links
         .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
         // Images
-        .replace(/!\[([^\]]*?)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
+        .replace(/!\[([^\]*?)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
         // Blockquotes
         .replace(/^> (.*)$/gm, '<blockquote>$1</blockquote>')
         // Horizontal rule

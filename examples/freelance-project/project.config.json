@@ -1,6 +1,7 @@
 {
   "title": "Client Website Redesign",
   "description": "Complete redesign of client's e-commerce website with new branding",
+  "theme": "dashboard",
   "contract": "docs/contract.pdf",
   "docs": [
     {

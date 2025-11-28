@@ -26,9 +26,13 @@ export type ExtLink = {
 // Available section types for ordering
 export type SectionType = "docs" | "repos" | "notes" | "images" | "links" | "noteApps" | "quickNotes";
 
+// Available themes
+export type ThemeType = "default" | "terminal" | "notion" | "glass" | "paper" | "dashboard";
+
 export type ProjectConfig = {
   title: string;
   description?: string;
+  theme?: ThemeType;
   bearNoteUrl?: string;
   obsidianUrl?: string;
   contract?: string;
