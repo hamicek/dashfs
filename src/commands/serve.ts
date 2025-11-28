@@ -2,7 +2,7 @@ import { createServer, request as httpRequest, IncomingMessage, ServerResponse }
 import { readFileSync, writeFileSync, existsSync, statSync, watch as fsWatch } from "fs";
 import { resolve, extname, basename } from "path";
 import { exec } from "child_process";
-import { CONFIG_FILE, OUTPUT_FILE, ProjectConfig } from "../types.js";
+import { CONFIG_FILE, OUTPUT_FILE, ProjectConfig, ThemeType } from "../types.js";
 import { generate } from "./generate/index.js";
 import { registerProject, unregisterProject, getRegistry, getProjectByName } from "../registry.js";
 
@@ -112,20 +112,30 @@ function shutdownIfEmpty(): void {
   }
 }
 
-function generateProjectSelector(currentProject: string): string {
+// Available themes list
+const THEMES: ThemeType[] = ["default", "terminal", "notion", "glass", "paper", "dashboard"];
+
+function generateProjectSelector(currentProject: string, currentTheme: ThemeType = "default"): string {
   const projects = getRegistry();
 
-  const options = projects
+  const projectOptions = projects
     .map((p) => `<option value="${p.name}" ${p.name === currentProject ? "selected" : ""}>${p.title}</option>`)
+    .join("");
+
+  const themeOptions = THEMES
+    .map((t) => `<option value="${t}" ${t === currentTheme ? "selected" : ""}>${t}</option>`)
     .join("");
 
   return `
 <div class="project-toolbar">
   ${projects.length > 1 ? `
   <select id="projectSelect" onchange="window.location.href='/' + this.value + '/'">
-    ${options}
+    ${projectOptions}
   </select>
   ` : ""}
+  <select id="themeSelect" onchange="changeTheme(this.value)" title="Change theme">
+    ${themeOptions}
+  </select>
   <button id="closeProject" onclick="closeProject('${currentProject}')" title="Close this project">✕</button>
 </div>
 <style>
@@ -143,14 +153,14 @@ function generateProjectSelector(currentProject: string): string {
     font-size: 0.875rem;
     padding: 8px 12px;
     border-radius: 8px;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--text);
+    border: 1px solid var(--card-border, #e5e7eb);
+    background: var(--card-bg, #ffffff);
+    color: var(--text, #111827);
     cursor: pointer;
-    min-width: 150px;
+    min-width: 100px;
   }
   .project-toolbar select:hover {
-    border-color: var(--link-border-hover);
+    border-color: var(--link-border-hover, #d1d5db);
   }
   .project-toolbar button {
     font-family: inherit;
@@ -158,9 +168,9 @@ function generateProjectSelector(currentProject: string): string {
     width: 32px;
     height: 32px;
     border-radius: 8px;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--text-muted);
+    border: 1px solid var(--card-border, #e5e7eb);
+    background: var(--card-bg, #ffffff);
+    color: var(--text-muted, #6b7280);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -181,6 +191,31 @@ async function closeProject(projectName) {
     window.location.href = '/';
   } catch (e) {
     alert('Failed to close project');
+  }
+}
+
+async function changeTheme(theme) {
+  const projectName = window.location.pathname.split('/').filter(Boolean)[0];
+  if (!projectName) return;
+  try {
+    // Get current config
+    const res = await fetch('/__api/config/' + projectName);
+    if (!res.ok) return;
+    const config = await res.json();
+
+    // Update theme
+    config.theme = theme;
+
+    // Save config
+    await fetch('/__api/config/' + projectName, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config)
+    });
+
+    // Reload will happen automatically via live reload
+  } catch (e) {
+    console.error('Failed to change theme:', e);
   }
 }
 </script>
@@ -248,9 +283,20 @@ function serveProject(
     if (ext === ".html") {
       let htmlContent = content.toString();
 
-      // Add project toolbar (selector + close button)
-      const toolbar = generateProjectSelector(projectName);
-      htmlContent = htmlContent.replace("<body>", "<body>" + toolbar);
+      // Get current theme from config
+      let currentTheme: ThemeType = "default";
+      const configPath = resolve(projectPath, CONFIG_FILE);
+      if (existsSync(configPath)) {
+        try {
+          const cfg: ProjectConfig = JSON.parse(readFileSync(configPath, "utf-8"));
+          currentTheme = cfg.theme || "default";
+        } catch { /* ignore */ }
+      }
+
+      // Add project toolbar (selector + close button + theme selector)
+      const toolbar = generateProjectSelector(projectName, currentTheme);
+      // Handle both <body> and <body class="...">
+      htmlContent = htmlContent.replace(/<body([^>]*)>/, "<body$1>" + toolbar);
 
       // Add live reload script in watch mode
       if (watchMode) {
