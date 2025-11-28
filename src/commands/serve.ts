@@ -1,8 +1,9 @@
 import { createServer } from "http";
-import { readFileSync, existsSync, statSync } from "fs";
+import { readFileSync, existsSync, statSync, watch as fsWatch } from "fs";
 import { resolve, extname } from "path";
 import { exec } from "child_process";
 import { CONFIG_FILE, OUTPUT_FILE } from "../types.js";
+import { generate } from "./generate.js";
 
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -20,11 +21,20 @@ const MIME_TYPES: Record<string, string> = {
   ".webp": "image/webp",
 };
 
-export async function serve(port: number = 3030) {
+export async function serve(port: number = 3030, watchMode: boolean = false) {
   const cwd = process.cwd();
+  const configPath = resolve(cwd, CONFIG_FILE);
   const dashboardPath = resolve(cwd, OUTPUT_FILE);
 
-  if (!existsSync(dashboardPath)) {
+  // In watch mode, generate first if dashboard doesn't exist
+  if (watchMode && !existsSync(dashboardPath)) {
+    if (!existsSync(configPath)) {
+      console.error(`❌ ${CONFIG_FILE} not found.`);
+      console.error(`   Run 'dashfs init' or 'dashfs scan' first.`);
+      process.exit(1);
+    }
+    await generate();
+  } else if (!existsSync(dashboardPath)) {
     console.error(`❌ ${OUTPUT_FILE} not found.`);
     console.error(`   Run 'dashfs generate' first.`);
     process.exit(1);
@@ -73,6 +83,9 @@ export async function serve(port: number = 3030) {
   server.listen(port, () => {
     const url = `http://localhost:${port}`;
     console.log(`🚀 Dashboard server running at ${url}`);
+    if (watchMode) {
+      console.log(`👀 Watching for config changes...`);
+    }
     console.log(`   Press Ctrl+C to stop\n`);
 
     // Open in default browser
@@ -84,6 +97,28 @@ export async function serve(port: number = 3030) {
 
     exec(`${openCommand} ${url}`);
   });
+
+  // Watch config file for changes
+  if (watchMode && existsSync(configPath)) {
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    fsWatch(configPath, async (eventType) => {
+      if (eventType === "change") {
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+        }
+        debounceTimer = setTimeout(async () => {
+          console.log(`🔄 Config changed, regenerating...`);
+          try {
+            await generate();
+            console.log(`✅ Dashboard updated. Refresh browser to see changes.`);
+          } catch (err) {
+            console.error(`❌ Error: ${(err as Error).message}`);
+          }
+        }, 100);
+      }
+    });
+  }
 
   // Handle shutdown
   process.on("SIGINT", () => {

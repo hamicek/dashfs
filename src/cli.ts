@@ -90,14 +90,19 @@ function printServeHelp() {
 dashfs serve - Start local server
 
 Usage:
-  dashfs serve [port]
+  dashfs serve [port] [--watch]
 
 Starts a local HTTP server and opens dashboard in browser.
 Default port is 3030.
 
+Options:
+  --watch, -w   Watch config and auto-regenerate on changes
+
 Examples:
-  dashfs serve        # Start on port 3030
-  dashfs serve 8080   # Start on port 8080
+  dashfs serve           # Start on port 3030
+  dashfs serve 8080      # Start on port 8080
+  dashfs serve --watch   # Start with auto-regeneration
+  dashfs serve 8080 -w   # Custom port with watch mode
 
 This enables viewing Markdown files directly in the dashboard.
 Press Ctrl+C to stop the server.
@@ -144,8 +149,20 @@ async function main() {
     if (wantsHelp) {
       printServeHelp();
     } else {
-      const port = subArg ? parseInt(subArg, 10) : 3030;
-      await serve(port);
+      // Parse serve arguments: port and --watch flag
+      const serveArgs = args.slice(1);
+      let port = 3030;
+      let watchMode = false;
+
+      for (const arg of serveArgs) {
+        if (arg === "--watch" || arg === "-w") {
+          watchMode = true;
+        } else if (!isNaN(parseInt(arg, 10))) {
+          port = parseInt(arg, 10);
+        }
+      }
+
+      await serve(port, watchMode);
     }
   } else if (command === "watch") {
     if (wantsHelp) {
