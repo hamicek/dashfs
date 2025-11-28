@@ -1,7 +1,7 @@
 import { watch as fsWatch, existsSync } from "fs";
 import { resolve, basename } from "path";
 import { CONFIG_FILE, OUTPUT_FILE } from "../types.js";
-import { generate } from "./generate.js";
+import { generate } from "./generate/index.js";
 
 export async function watch() {
   const cwd = process.cwd();

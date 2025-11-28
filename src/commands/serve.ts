@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, existsSync, statSync, watch as fsWatch } f
 import { resolve, extname, basename } from "path";
 import { exec } from "child_process";
 import { CONFIG_FILE, OUTPUT_FILE, ProjectConfig } from "../types.js";
-import { generate } from "./generate.js";
+import { generate } from "./generate/index.js";
 import { registerProject, unregisterProject, getRegistry, getProjectByName } from "../registry.js";
 
 const MIME_TYPES: Record<string, string> = {

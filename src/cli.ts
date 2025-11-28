@@ -2,7 +2,7 @@
 
 import { init } from "./commands/init.js";
 import { scan } from "./commands/scan.js";
-import { generate } from "./commands/generate.js";
+import { generate } from "./commands/generate/index.js";
 import { serve } from "./commands/serve.js";
 import { watch } from "./commands/watch.js";
 
