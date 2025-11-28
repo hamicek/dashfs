@@ -1,0 +1,26 @@
+{
+  "title": "Client Website Redesign",
+  "description": "Complete redesign of client's e-commerce website with new branding",
+  "contract": "docs/contract.pdf",
+  "docs": [
+    { "label": "Brand Guidelines", "path": "docs/brand-guidelines.pdf" },
+    { "label": "Technical Spec", "path": "docs/technical-spec.pdf" }
+  ],
+  "repos": [
+    { "label": "Client API", "path": "repos/client-api" }
+  ],
+  "notes": [
+    { "label": "Meeting Notes", "path": "notes/meetings.md" },
+    { "label": "TODO List", "path": "notes/todo.md" }
+  ],
+  "links": [
+    { "label": "Figma Design", "url": "https://figma.com/file/example" },
+    { "label": "Client Website", "url": "https://example.com" },
+    { "label": "Staging", "url": "https://staging.example.com" }
+  ],
+  "quickNotes": [
+    "Deadline: January 15, 2025",
+    "Contact: john@client.com",
+    "Hourly rate: $85"
+  ]
+}

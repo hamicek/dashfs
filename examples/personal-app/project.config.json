@@ -1,0 +1,20 @@
+{
+  "title": "Habit Tracker App",
+  "description": "Personal habit tracking app with streaks and statistics",
+  "repos": [
+    { "label": "Habit Tracker", "path": "repos/my-app" }
+  ],
+  "notes": [
+    { "label": "Ideas", "path": "notes/ideas.md" },
+    { "label": "Architecture", "path": "notes/architecture.md" }
+  ],
+  "links": [
+    { "label": "GitHub", "url": "https://github.com/me/habit-tracker" },
+    { "label": "Vercel Deploy", "url": "https://habit-tracker.vercel.app" }
+  ],
+  "quickNotes": [
+    "Stack: Next.js + Prisma + PostgreSQL",
+    "v1.0 released!",
+    "Next: Add social features"
+  ]
+}
