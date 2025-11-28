@@ -7,6 +7,9 @@ import { getNotionTheme } from "./notion.js";
 import { getGlassTheme } from "./glass.js";
 import { getPaperTheme } from "./paper.js";
 import { getDashboardTheme } from "./dashboard.js";
+import { getNordTheme } from "./nord.js";
+import { getBrutalistTheme } from "./brutalist.js";
+import { getSunsetTheme } from "./sunset.js";
 
 export type ThemeStyles = {
   css: string;
@@ -26,6 +29,12 @@ export function getTheme(theme: ThemeType = "default"): ThemeStyles {
       return getPaperTheme();
     case "dashboard":
       return getDashboardTheme();
+    case "nord":
+      return getNordTheme();
+    case "brutalist":
+      return getBrutalistTheme();
+    case "sunset":
+      return getSunsetTheme();
     case "default":
     default:
       return getDefaultTheme();
@@ -40,4 +49,7 @@ export const AVAILABLE_THEMES: Record<ThemeType, string> = {
   glass: "Glassmorphism with blur effects and gradients",
   paper: "Classic document style with serif fonts",
   dashboard: "Dark analytics dashboard with accent colors",
+  nord: "Calm Nordic color palette",
+  brutalist: "Raw, minimal no-nonsense design",
+  sunset: "Warm gradient with orange/pink tones",
 };

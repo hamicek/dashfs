@@ -1,19 +1,40 @@
 {
   "title": "AI in Education Research",
   "description": "Literature review and research notes on AI applications in education",
-  "theme": "paper",
+  "theme": "dashboard",
   "docs": [
-    { "label": "Literature Review", "path": "docs/literature-review.pdf" },
-    { "label": "Research Proposal", "path": "docs/proposal.pdf" }
+    {
+      "label": "Literature Review",
+      "path": "docs/literature-review.pdf"
+    },
+    {
+      "label": "Research Proposal",
+      "path": "docs/proposal.pdf"
+    }
   ],
   "notes": [
-    { "label": "Reading Notes", "path": "reading-notes.md" }
+    {
+      "label": "Reading Notes",
+      "path": "reading-notes.md"
+    }
   ],
   "links": [
-    { "label": "Google Scholar", "url": "https://scholar.google.com" },
-    { "label": "Zotero Library", "url": "https://www.zotero.org/groups/my-library" },
-    { "label": "OpenAI Research", "url": "https://openai.com/research" },
-    { "label": "arXiv AI", "url": "https://arxiv.org/list/cs.AI/recent" }
+    {
+      "label": "Google Scholar",
+      "url": "https://scholar.google.com"
+    },
+    {
+      "label": "Zotero Library",
+      "url": "https://www.zotero.org/groups/my-library"
+    },
+    {
+      "label": "OpenAI Research",
+      "url": "https://openai.com/research"
+    },
+    {
+      "label": "arXiv AI",
+      "url": "https://arxiv.org/list/cs.AI/recent"
+    }
   ],
   "obsidianUrl": "obsidian://open?vault=Research&file=AI-Education",
   "quickNotes": [

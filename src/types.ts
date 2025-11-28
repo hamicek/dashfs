@@ -27,7 +27,7 @@ export type ExtLink = {
 export type SectionType = "docs" | "repos" | "notes" | "images" | "links" | "noteApps" | "quickNotes";
 
 // Available themes
-export type ThemeType = "default" | "terminal" | "notion" | "glass" | "paper" | "dashboard";
+export type ThemeType = "default" | "terminal" | "notion" | "glass" | "paper" | "dashboard" | "nord" | "brutalist" | "sunset";
 
 export type ProjectConfig = {
   title: string;

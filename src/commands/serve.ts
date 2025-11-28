@@ -113,7 +113,7 @@ function shutdownIfEmpty(): void {
 }
 
 // Available themes list
-const THEMES: ThemeType[] = ["default", "terminal", "notion", "glass", "paper", "dashboard"];
+const THEMES: ThemeType[] = ["default", "terminal", "notion", "glass", "paper", "dashboard", "nord", "brutalist", "sunset"];
 
 function generateProjectSelector(currentProject: string, currentTheme: ThemeType = "default"): string {
   const projects = getRegistry();
