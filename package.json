@@ -1,0 +1,27 @@
+{
+  "name": "dashfs",
+  "version": "0.1.0",
+  "description": "Zero-install project dashboard generator from filesystem structure",
+  "type": "module",
+  "bin": {
+    "dashfs": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/cli.js"
+  },
+  "keywords": [
+    "dashboard",
+    "project",
+    "filesystem",
+    "generator",
+    "productivity"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
