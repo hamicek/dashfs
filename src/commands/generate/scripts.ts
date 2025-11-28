@@ -2,8 +2,71 @@
 
 export function getScripts(): string {
   return String.raw`
-    // Simple Markdown parser
+    // Simple Markdown parser with nested list support
     function parseMarkdown(md) {
+      // Parse lists with nesting support
+      function parseLists(text) {
+        const lines = text.split('\n');
+        let result = [];
+        let i = 0;
+
+        while (i < lines.length) {
+          const line = lines[i];
+          const match = line.match(/^(\s*)([\*\-]|\d+\.)\s+(.*)$/);
+
+          if (match) {
+            const indent = match[1].length;
+            const items = [];
+
+            // Collect all list items at this level
+            while (i < lines.length) {
+              const currentLine = lines[i];
+              const itemMatch = currentLine.match(/^(\s*)([\*\-]|\d+\.)\s+(.*)$/);
+
+              if (!itemMatch) break;
+
+              const currentIndent = itemMatch[1].length;
+              if (currentIndent < indent) break;
+
+              if (currentIndent === indent) {
+                items.push({ content: itemMatch[3], children: [] });
+                i++;
+              } else {
+                // Nested list - collect lines for recursive parsing
+                const nestedLines = [];
+                while (i < lines.length) {
+                  const nestedLine = lines[i];
+                  const nestedMatch = nestedLine.match(/^(\s*)([\*\-]|\d+\.)\s+(.*)$/);
+                  if (!nestedMatch || nestedMatch[1].length < currentIndent) break;
+                  nestedLines.push(nestedLine);
+                  i++;
+                }
+                if (items.length > 0) {
+                  items[items.length - 1].children = nestedLines;
+                }
+              }
+            }
+
+            // Generate HTML
+            let listHtml = '<ul>';
+            for (const item of items) {
+              listHtml += '<li>' + item.content;
+              if (item.children.length > 0) {
+                listHtml += parseLists(item.children.join('\n'));
+              }
+              listHtml += '</li>';
+            }
+            listHtml += '</ul>';
+            result.push(listHtml);
+          } else {
+            result.push(line);
+            i++;
+          }
+        }
+
+        return result.join('\n');
+      }
+
       let html = md
         // Escape HTML
         .replace(/&/g, '&amp;')
@@ -30,22 +93,18 @@ export function getScripts(): string {
         .replace(/^> (.*)$/gm, '<blockquote>$1</blockquote>')
         // Horizontal rule
         .replace(/^---$/gm, '<hr>')
-        .replace(/^\*\*\*$/gm, '<hr>')
-        // Unordered lists
-        .replace(/^[\*\-] (.*)$/gm, '<li>$1</li>')
-        // Ordered lists
-        .replace(/^\d+\. (.*)$/gm, '<li>$1</li>')
-        // Paragraphs
-        .replace(/\n\n/g, '</p><p>')
-        // Line breaks
-        .replace(/\n/g, '<br>');
+        .replace(/^\*\*\*$/gm, '<hr>');
+
+      // Parse lists with nesting
+      html = parseLists(html);
+
+      // Paragraphs
+      html = html.replace(/\n\n/g, '</p><p>');
+      // Line breaks (but not inside lists)
+      html = html.replace(/\n(?!<)/g, '<br>');
 
       // Wrap in paragraph
       html = '<p>' + html + '</p>';
-
-      // Fix list wrapping
-      html = html.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
-      html = html.replace(/<\/ul><ul>/g, '');
 
       // Fix empty paragraphs
       html = html.replace(/<p><\/p>/g, '');
