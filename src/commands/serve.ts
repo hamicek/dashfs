@@ -30,6 +30,9 @@ const sseClients: Map<string, Array<{ res: ServerResponse }>> = new Map();
 // File watchers for each project
 const watchers: Map<string, ReturnType<typeof fsWatch>> = new Map();
 
+// Reference to server for shutdown
+let serverInstance: ReturnType<typeof createServer> | null = null;
+
 function getProjectTitle(projectPath: string): string {
   const configPath = resolve(projectPath, CONFIG_FILE);
   if (existsSync(configPath)) {
@@ -88,30 +91,54 @@ function setupWatcher(projectName: string, projectPath: string): void {
   watchers.set(projectName, watcher);
 }
 
+function cleanupWatcher(projectName: string): void {
+  const watcher = watchers.get(projectName);
+  if (watcher) {
+    watcher.close();
+    watchers.delete(projectName);
+  }
+  sseClients.delete(projectName);
+}
+
+function shutdownIfEmpty(): void {
+  const projects = getRegistry();
+  if (projects.length === 0 && serverInstance) {
+    console.log("\n📭 No projects registered, shutting down server...");
+    for (const watcher of watchers.values()) {
+      watcher.close();
+    }
+    serverInstance.close();
+    process.exit(0);
+  }
+}
+
 function generateProjectSelector(currentProject: string): string {
   const projects = getRegistry();
-  if (projects.length <= 1) {
-    return "";
-  }
 
   const options = projects
     .map((p) => `<option value="${p.name}" ${p.name === currentProject ? "selected" : ""}>${p.title}</option>`)
     .join("");
 
   return `
-<div class="project-selector">
+<div class="project-toolbar">
+  ${projects.length > 1 ? `
   <select id="projectSelect" onchange="window.location.href='/' + this.value + '/'">
     ${options}
   </select>
+  ` : ""}
+  <button id="closeProject" onclick="closeProject('${currentProject}')" title="Close this project">✕</button>
 </div>
 <style>
-  .project-selector {
+  .project-toolbar {
     position: fixed;
     top: 16px;
     right: 16px;
     z-index: 100;
+    display: flex;
+    gap: 8px;
+    align-items: center;
   }
-  .project-selector select {
+  .project-toolbar select {
     font-family: inherit;
     font-size: 0.875rem;
     padding: 8px 12px;
@@ -122,10 +149,41 @@ function generateProjectSelector(currentProject: string): string {
     cursor: pointer;
     min-width: 150px;
   }
-  .project-selector select:hover {
+  .project-toolbar select:hover {
     border-color: var(--link-border-hover);
   }
+  .project-toolbar button {
+    font-family: inherit;
+    font-size: 1rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+  .project-toolbar button:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: white;
+  }
 </style>
+<script>
+async function closeProject(projectName) {
+  if (!confirm('Close this project dashboard?')) return;
+  try {
+    await fetch('/__api/unregister/' + projectName, { method: 'POST' });
+    window.location.href = '/';
+  } catch (e) {
+    alert('Failed to close project');
+  }
+}
+</script>
 `;
 }
 
@@ -190,11 +248,9 @@ function serveProject(
     if (ext === ".html") {
       let htmlContent = content.toString();
 
-      // Add project selector
-      const selector = generateProjectSelector(projectName);
-      if (selector) {
-        htmlContent = htmlContent.replace("<body>", "<body>" + selector);
-      }
+      // Add project toolbar (selector + close button)
+      const toolbar = generateProjectSelector(projectName);
+      htmlContent = htmlContent.replace("<body>", "<body>" + toolbar);
 
       // Add live reload script in watch mode
       if (watchMode) {
@@ -310,7 +366,7 @@ function generateIndexPage(): string {
 }
 
 async function startMasterServer(): Promise<void> {
-  const server = createServer((req, res) => {
+  serverInstance = createServer((req, res) => {
     const url = req.url || "/";
 
     // Index page - list all projects
@@ -324,6 +380,25 @@ async function startMasterServer(): Promise<void> {
     if (url === "/__api/projects") {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(getRegistry()));
+      return;
+    }
+
+    // API endpoint to unregister a project
+    if (url.startsWith("/__api/unregister/") && req.method === "POST") {
+      const projectName = url.replace("/__api/unregister/", "");
+      const project = getProjectByName(projectName);
+      if (project) {
+        console.log(`📤 Unregistering project: ${project.title}`);
+        cleanupWatcher(projectName);
+        unregisterProject(project.path);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ success: true }));
+        // Check if we should shutdown
+        setTimeout(shutdownIfEmpty, 100);
+      } else {
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Project not found" }));
+      }
       return;
     }
 
@@ -353,7 +428,7 @@ async function startMasterServer(): Promise<void> {
     serveProject(req, res, projectName, project.path, urlPath, project.watchMode);
   });
 
-  server.listen(PORT, () => {
+  serverInstance.listen(PORT, () => {
     console.log(`🚀 DashFS master server running at http://localhost:${PORT}`);
     console.log(`   Press Ctrl+C to stop\n`);
   });
@@ -365,7 +440,7 @@ async function startMasterServer(): Promise<void> {
     for (const watcher of watchers.values()) {
       watcher.close();
     }
-    server.close();
+    serverInstance?.close();
     process.exit(0);
   });
 }
@@ -428,23 +503,11 @@ export async function serve(port: number = PORT, watchMode: boolean = false) {
     exec(`${openCommand} ${url}`);
 
     if (watchMode) {
-      console.log(`👀 Watching for config changes...`);
-      console.log(`   (Master server is handling file watching)\n`);
-
-      // Keep process alive but let master server handle the watching
-      // This process just needs to unregister on exit
-      process.on("SIGINT", () => {
-        console.log("\n👋 Unregistering project...");
-        unregisterProject(cwd);
-        process.exit(0);
-      });
-
-      // Keep alive
-      setInterval(() => {}, 1000);
-    } else {
-      // Not in watch mode, just open and exit
-      console.log(`   Dashboard opened in browser.\n`);
+      console.log(`👀 Watch mode enabled (master server handles watching)`);
     }
+    console.log(`✅ Project registered. Use the dashboard to close it.\n`);
+    // Exit immediately - master server handles everything
+    process.exit(0);
   } else {
     // Start master server
     const url = `http://localhost:${PORT}/${projectName}/`;
