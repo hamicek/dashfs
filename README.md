@@ -18,6 +18,9 @@ Perfect for:
 - **VS Code integration** – Repository links open directly in VS Code
 - **Markdown viewer** – View .md files directly in the dashboard with syntax highlighting
 - **App URL schemes** – Support for Bear, Obsidian, and other macOS apps
+- **Dark mode** – Automatic theme based on system preference
+- **Live reload** – Auto-refresh dashboard when config changes (`--watch` mode)
+- **Multi-project server** – Single server handles multiple projects on one port
 - **No vendor lock-in** – Your data stays in JSON, dashboard is just HTML
 
 ## Installation
@@ -41,6 +44,13 @@ cd ~/Projects/my-project
 # Scan folder and create config
 dashfs scan
 
+# Start server with live reload
+dashfs serve -w
+```
+
+Or without server:
+
+```bash
 # Generate dashboard
 dashfs generate
 
@@ -65,6 +75,22 @@ Scans your folder structure and adds found items to config:
 ### `dashfs generate`
 
 Generates `dashboard.html` from your config.
+
+### `dashfs serve`
+
+Starts a local server and opens dashboard in browser.
+
+```bash
+dashfs serve           # Start on port 3030
+dashfs serve -w        # Start with live reload (auto-refresh on config changes)
+dashfs serve --watch   # Same as -w
+```
+
+**Multi-project support:** Run `dashfs serve -w` in multiple project directories. All projects share a single server on port 3030 and can be switched via dropdown in the dashboard.
+
+### `dashfs watch`
+
+Watches `project.config.json` and regenerates dashboard on changes (without server).
 
 ### `dashfs --help`
 
@@ -114,6 +140,22 @@ my-project/
 ├── design/          # Images, designs
 ├── project.config.json
 └── dashboard.html   # Generated dashboard
+```
+
+## Server Architecture
+
+DashFS uses a master server architecture for multi-project support:
+
+- **Single port (3030)** – All projects share one server
+- **URL routing** – Each project accessible at `http://localhost:3030/project-name/`
+- **Project selector** – Switch between projects via dropdown
+- **Close button** – Unregister projects from dashboard
+- **Auto-shutdown** – Server stops when last project is closed
+
+```
+First terminal:    dashfs serve -w  → Starts master server
+Second terminal:   dashfs serve -w  → Registers project and exits
+Third terminal:    dashfs serve -w  → Registers project and exits
 ```
 
 ## Why DashFS?
