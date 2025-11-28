@@ -8,6 +8,16 @@ export type RepoLink = {
   path: string;
 };
 
+export type NoteLink = {
+  label: string;
+  path: string;
+};
+
+export type ImageLink = {
+  label: string;
+  path: string;
+};
+
 export type ExtLink = {
   label: string;
   url: string;
@@ -21,6 +31,8 @@ export type ProjectConfig = {
   contract?: string;
   docs?: DocLink[];
   repos?: RepoLink[];
+  notes?: NoteLink[];
+  images?: ImageLink[];
   links?: ExtLink[];
   quickNotes?: string[];
 };
