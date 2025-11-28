@@ -1,5 +1,5 @@
 import { createServer, request as httpRequest, IncomingMessage, ServerResponse } from "http";
-import { readFileSync, existsSync, statSync, watch as fsWatch } from "fs";
+import { readFileSync, writeFileSync, existsSync, statSync, watch as fsWatch } from "fs";
 import { resolve, extname, basename } from "path";
 import { exec } from "child_process";
 import { CONFIG_FILE, OUTPUT_FILE, ProjectConfig } from "../types.js";
@@ -395,6 +395,63 @@ async function startMasterServer(): Promise<void> {
         res.end(JSON.stringify({ success: true }));
         // Check if we should shutdown
         setTimeout(shutdownIfEmpty, 100);
+      } else {
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Project not found" }));
+      }
+      return;
+    }
+
+    // API endpoint to get project config
+    const configGetMatch = url.match(/^\/__api\/config\/([^/]+)$/);
+    if (configGetMatch && req.method === "GET") {
+      const projectName = configGetMatch[1];
+      const project = getProjectByName(projectName);
+      if (project) {
+        const configPath = resolve(project.path, CONFIG_FILE);
+        if (existsSync(configPath)) {
+          try {
+            const config = readFileSync(configPath, "utf-8");
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(config);
+          } catch {
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "Failed to read config" }));
+          }
+        } else {
+          res.writeHead(404, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Config not found" }));
+        }
+      } else {
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Project not found" }));
+      }
+      return;
+    }
+
+    // API endpoint to update project config
+    if (configGetMatch && req.method === "POST") {
+      const projectName = configGetMatch[1];
+      const project = getProjectByName(projectName);
+      if (project) {
+        let body = "";
+        req.on("data", (chunk) => {
+          body += chunk.toString();
+        });
+        req.on("end", () => {
+          try {
+            // Validate JSON
+            const newConfig = JSON.parse(body);
+            const configPath = resolve(project.path, CONFIG_FILE);
+            writeFileSync(configPath, JSON.stringify(newConfig, null, 2), "utf-8");
+            console.log(`💾 [${projectName}] Config updated`);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ success: true }));
+          } catch (err) {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "Invalid JSON" }));
+          }
+        });
       } else {
         res.writeHead(404, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ error: "Project not found" }));

@@ -256,11 +256,105 @@
     .md-content .hljs-comment { color: #5c6370; font-style: italic; }
     .md-content .hljs-function { color: #61afef; }
     .md-content .hljs-class { color: #e5c07b; }
+
+    /* Inline editing styles */
+    .editable {
+      cursor: text;
+      border-radius: 4px;
+      transition: background 0.15s ease;
+    }
+    .editable:hover {
+      background: var(--link-bg);
+    }
+    .editable:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      background: var(--link-bg);
+    }
+    .editable[data-placeholder]:empty::before {
+      content: attr(data-placeholder);
+      color: var(--text-subtle);
+      font-style: italic;
+    }
+    .quick-notes-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .quick-note-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .quick-note-item:last-child {
+      border-bottom: none;
+    }
+    .quick-note-text {
+      flex: 1;
+      min-width: 0;
+    }
+    .quick-note-delete {
+      background: none;
+      border: none;
+      color: var(--text-subtle);
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 1rem;
+      opacity: 0;
+      transition: all 0.15s ease;
+    }
+    .quick-note-item:hover .quick-note-delete {
+      opacity: 1;
+    }
+    .quick-note-delete:hover {
+      background: #ef4444;
+      color: white;
+    }
+    .add-note-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 12px;
+      padding: 6px 12px;
+      background: var(--link-bg);
+      border: 1px dashed var(--card-border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.15s ease;
+    }
+    .add-note-btn:hover {
+      background: var(--link-hover);
+      border-color: var(--link-border-hover);
+      color: var(--text);
+    }
+    .save-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: white;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s ease;
+      z-index: 1000;
+    }
+    .save-indicator.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
-  <h1>Client Website Redesign</h1>
-  <p class="description">Complete redesign of client's e-commerce website with new branding</p>
+  <h1 class="editable" contenteditable="true" data-field="title">Client Website Redesign</h1>
+  <p class="description editable" contenteditable="true" data-field="description" data-placeholder="Add description...">Complete redesign of client's e-commerce website with new branding</p>
 
   <div class="grid">
     <section class="card">
@@ -295,9 +389,19 @@
 
     
 
-    <section class="card">
+    <section class="card" id="quickNotesSection">
       <h2>Quick Notes</h2>
-      <ul><li>Deadline: January 15, 2025</li><li>Contact: john@client.com</li><li>Hourly rate: $85</li></ul>
+      <div class="quick-notes-list" id="quickNotesList"><div class="quick-note-item">
+      <span class="quick-note-text editable" contenteditable="true" data-note-index="0">Deadline: January 15, 2025</span>
+      <button class="quick-note-delete" data-note-index="0" title="Delete note">&times;</button>
+    </div><div class="quick-note-item">
+      <span class="quick-note-text editable" contenteditable="true" data-note-index="1">Contact: john@client.com</span>
+      <button class="quick-note-delete" data-note-index="1" title="Delete note">&times;</button>
+    </div><div class="quick-note-item">
+      <span class="quick-note-text editable" contenteditable="true" data-note-index="2">Hourly rate: $85</span>
+      <button class="quick-note-delete" data-note-index="2" title="Delete note">&times;</button>
+    </div></div>
+    <button class="add-note-btn" id="addNoteBtn">+ Add note</button>
     </section>
   </div>
 
@@ -418,6 +522,134 @@
         }
       });
     });
+
+    // ========== INLINE EDITING ==========
+    // Get project name from URL
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const projectName = pathParts[0] || '';
+
+    // Current config cache
+    let currentConfig = null;
+
+    // Load config on start
+    async function loadConfig() {
+      if (!projectName) return;
+      try {
+        const res = await fetch('/__api/config/' + projectName);
+        if (res.ok) {
+          currentConfig = await res.json();
+        }
+      } catch (e) {
+        console.error('Failed to load config:', e);
+      }
+    }
+
+    // Save config
+    async function saveConfig() {
+      if (!projectName || !currentConfig) return;
+      try {
+        const res = await fetch('/__api/config/' + projectName, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentConfig)
+        });
+        if (res.ok) {
+          showSaveIndicator();
+        }
+      } catch (e) {
+        console.error('Failed to save config:', e);
+      }
+    }
+
+    // Show save indicator
+    function showSaveIndicator() {
+      const indicator = document.getElementById('saveIndicator');
+      indicator.classList.add('visible');
+      setTimeout(() => indicator.classList.remove('visible'), 1500);
+    }
+
+    // Debounce helper
+    function debounce(fn, delay) {
+      let timer;
+      return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+      };
+    }
+
+    const debouncedSave = debounce(saveConfig, 500);
+
+    // Handle title/description editing
+    document.querySelectorAll('.editable[data-field]').forEach(el => {
+      el.addEventListener('blur', () => {
+        if (!currentConfig) return;
+        const field = el.dataset.field;
+        const value = el.textContent.trim();
+        if (currentConfig[field] !== value) {
+          currentConfig[field] = value || (field === 'title' ? 'Untitled' : '');
+          debouncedSave();
+        }
+      });
+
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          el.blur();
+        }
+      });
+    });
+
+    // Handle quick note editing
+    function setupQuickNoteListeners() {
+      document.querySelectorAll('.quick-note-text').forEach(el => {
+        el.addEventListener('blur', () => {
+          if (!currentConfig) return;
+          const index = parseInt(el.dataset.noteIndex);
+          const value = el.textContent.trim();
+          if (!currentConfig.quickNotes) currentConfig.quickNotes = [];
+          if (currentConfig.quickNotes[index] !== value) {
+            currentConfig.quickNotes[index] = value;
+            debouncedSave();
+          }
+        });
+
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            el.blur();
+          }
+        });
+      });
+
+      document.querySelectorAll('.quick-note-delete').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (!currentConfig) return;
+          const index = parseInt(btn.dataset.noteIndex);
+          if (!currentConfig.quickNotes) return;
+          currentConfig.quickNotes.splice(index, 1);
+          saveConfig();
+          // Re-render will happen via live reload
+        });
+      });
+    }
+
+    // Add new note
+    const addNoteBtn = document.getElementById('addNoteBtn');
+    if (addNoteBtn) {
+      addNoteBtn.addEventListener('click', () => {
+        if (!currentConfig) return;
+        if (!currentConfig.quickNotes) currentConfig.quickNotes = [];
+        currentConfig.quickNotes.push('New note...');
+        saveConfig();
+        // Re-render will happen via live reload
+      });
+    }
+
+    // Initialize
+    loadConfig().then(() => {
+      setupQuickNoteListeners();
+    });
   </script>
+  <div class="save-indicator" id="saveIndicator">Saved</div>
 </body>
 </html>
