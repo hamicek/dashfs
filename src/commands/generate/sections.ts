@@ -11,6 +11,28 @@ export const DEFAULT_SECTION_ORDER: SectionType[] = [
 // Drag handle SVG icon
 export const DRAG_HANDLE_ICON = `<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg>`;
 
+// File type icons (inline SVG)
+export const FILE_ICONS: Record<string, string> = {
+  pdf: `<svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6"/><path d="M9 11h6"/></svg>`,
+  md: `<svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3-3 3 3"/></svg>`,
+  image: `<svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
+  repo: `<svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
+  link: `<svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+  bear: `<svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>`,
+  obsidian: `<svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
+  contract: `<svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
+  file: `<svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+};
+
+// Get file type from extension
+function getFileType(path: string): string {
+  const ext = extname(path).toLowerCase();
+  if (ext === ".pdf") return "pdf";
+  if (ext === ".md" || ext === ".txt") return "md";
+  if ([".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"].includes(ext)) return "image";
+  return "file";
+}
+
 // Escape HTML special characters
 export function esc(s: string): string {
   return s
@@ -30,11 +52,14 @@ export type SectionDefinition = {
 // Generate documents section content
 export function generateDocsSection(cfg: ProjectConfig): string {
   const docsItems = (cfg.docs ?? [])
-    .map((d) => `<a href="${esc(d.path)}">${esc(d.label)}</a>`)
+    .map((d) => {
+      const fileType = getFileType(d.path);
+      return `<a href="${esc(d.path)}">${FILE_ICONS[fileType]}${esc(d.label)}</a>`;
+    })
     .join("");
 
   const contractItem = cfg.contract
-    ? `<a href="${esc(cfg.contract)}">Contract (PDF)</a>`
+    ? `<a href="${esc(cfg.contract)}">${FILE_ICONS.contract}Contract (PDF)</a>`
     : "";
 
   return contractItem + docsItems;
@@ -46,7 +71,7 @@ export function generateReposSection(cfg: ProjectConfig, projectRoot: string): s
     .map((r) => {
       const absPath = resolve(projectRoot, r.path);
       const vscodeUrl = `vscode://file/${absPath}`;
-      return `<a href="${esc(vscodeUrl)}">${esc(r.label)}</a>`;
+      return `<a href="${esc(vscodeUrl)}">${FILE_ICONS.repo}${esc(r.label)}</a>`;
     })
     .join("");
 }
@@ -56,10 +81,11 @@ export function generateNotesSection(cfg: ProjectConfig): string {
   return (cfg.notes ?? [])
     .map((n) => {
       const ext = extname(n.path).toLowerCase();
+      const fileType = getFileType(n.path);
       if (ext === ".md") {
-        return `<a href="#" class="md-link" data-path="${esc(n.path)}">${esc(n.label)}</a>`;
+        return `<a href="#" class="md-link" data-path="${esc(n.path)}">${FILE_ICONS[fileType]}${esc(n.label)}</a>`;
       }
-      return `<a href="${esc(n.path)}">${esc(n.label)}</a>`;
+      return `<a href="${esc(n.path)}">${FILE_ICONS[fileType]}${esc(n.label)}</a>`;
     })
     .join("");
 }
@@ -67,7 +93,7 @@ export function generateNotesSection(cfg: ProjectConfig): string {
 // Generate images section content
 export function generateImagesSection(cfg: ProjectConfig): string {
   return (cfg.images ?? [])
-    .map((i) => `<a href="${esc(i.path)}" target="_blank">${esc(i.label)}</a>`)
+    .map((i) => `<a href="${esc(i.path)}" target="_blank">${FILE_ICONS.image}${esc(i.label)}</a>`)
     .join("");
 }
 
@@ -75,7 +101,7 @@ export function generateImagesSection(cfg: ProjectConfig): string {
 export function generateLinksSection(cfg: ProjectConfig): string {
   return (cfg.links ?? [])
     .map(
-      (l) => `<a href="${esc(l.url)}" target="_blank" rel="noreferrer">${esc(l.label)}</a>`
+      (l) => `<a href="${esc(l.url)}" target="_blank" rel="noreferrer">${FILE_ICONS.link}${esc(l.label)}</a>`
     )
     .join("");
 }
@@ -84,10 +110,10 @@ export function generateLinksSection(cfg: ProjectConfig): string {
 export function generateNoteAppsSection(cfg: ProjectConfig): string {
   const notesApps: string[] = [];
   if (cfg.bearNoteUrl) {
-    notesApps.push(`<a href="${esc(cfg.bearNoteUrl)}">Bear</a>`);
+    notesApps.push(`<a href="${esc(cfg.bearNoteUrl)}">${FILE_ICONS.bear}Bear</a>`);
   }
   if (cfg.obsidianUrl) {
-    notesApps.push(`<a href="${esc(cfg.obsidianUrl)}">Obsidian</a>`);
+    notesApps.push(`<a href="${esc(cfg.obsidianUrl)}">${FILE_ICONS.obsidian}Obsidian</a>`);
   }
   return notesApps.join("");
 }

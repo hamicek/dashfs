@@ -148,6 +148,23 @@
       font-weight: 600;
     }
 
+    /* File type icons */
+    .file-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      flex-shrink: 0;
+      vertical-align: middle;
+      opacity: 0.7;
+    }
+    .links a {
+      display: inline-flex;
+      align-items: center;
+    }
+    .links a:hover .file-icon {
+      opacity: 1;
+    }
+
     /* Inline editing - structure */
     .editable {
       cursor: text;
@@ -527,7 +544,7 @@
         <span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg></span>
         <h2>Documents</h2>
       </div>
-      <div class="links"><a href="docs/literature-review.pdf">Literature Review</a><a href="docs/proposal.pdf">Research Proposal</a></div>
+      <div class="links"><a href="docs/literature-review.pdf"><svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6"/><path d="M9 11h6"/></svg>Literature Review</a><a href="docs/proposal.pdf"><svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6"/><path d="M9 11h6"/></svg>Research Proposal</a></div>
     </section>
 
     <section class="card" data-section="notes" draggable="true">
@@ -535,7 +552,7 @@
         <span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg></span>
         <h2>Notes</h2>
       </div>
-      <div class="links"><a href="#" class="md-link" data-path="reading-notes.md">Reading Notes</a></div>
+      <div class="links"><a href="#" class="md-link" data-path="reading-notes.md"><svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3-3 3 3"/></svg>Reading Notes</a></div>
     </section>
 
     <section class="card" data-section="links" draggable="true">
@@ -543,7 +560,7 @@
         <span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg></span>
         <h2>External Links</h2>
       </div>
-      <div class="links"><a href="https://scholar.google.com" target="_blank" rel="noreferrer">Google Scholar</a><a href="https://www.zotero.org/groups/my-library" target="_blank" rel="noreferrer">Zotero Library</a><a href="https://openai.com/research" target="_blank" rel="noreferrer">OpenAI Research</a><a href="https://arxiv.org/list/cs.AI/recent" target="_blank" rel="noreferrer">arXiv AI</a></div>
+      <div class="links"><a href="https://scholar.google.com" target="_blank" rel="noreferrer"><svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Google Scholar</a><a href="https://www.zotero.org/groups/my-library" target="_blank" rel="noreferrer"><svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Zotero Library</a><a href="https://openai.com/research" target="_blank" rel="noreferrer"><svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>OpenAI Research</a><a href="https://arxiv.org/list/cs.AI/recent" target="_blank" rel="noreferrer"><svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>arXiv AI</a></div>
     </section>
 
     <section class="card" data-section="noteApps" draggable="true">
@@ -551,7 +568,7 @@
         <span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg></span>
         <h2>Note Apps</h2>
       </div>
-      <div class="links"><a href="obsidian://open?vault=Research&amp;file=AI-Education">Obsidian</a></div>
+      <div class="links"><a href="obsidian://open?vault=Research&amp;file=AI-Education"><svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>Obsidian</a></div>
     </section>
 
     <section class="card" data-section="quickNotes" id="quickNotesSection" draggable="true">

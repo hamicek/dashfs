@@ -145,6 +145,23 @@ export function getCommonStyles(): string {
       font-weight: 600;
     }
 
+    /* File type icons */
+    .file-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      flex-shrink: 0;
+      vertical-align: middle;
+      opacity: 0.7;
+    }
+    .links a {
+      display: inline-flex;
+      align-items: center;
+    }
+    .links a:hover .file-icon {
+      opacity: 1;
+    }
+
     /* Inline editing - structure */
     .editable {
       cursor: text;
