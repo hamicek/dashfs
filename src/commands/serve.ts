@@ -516,7 +516,6 @@ function isServerRunning(): Promise<boolean> {
 export async function serve(port: number = PORT, watchMode: boolean = false) {
   const cwd = process.cwd();
   const configPath = resolve(cwd, CONFIG_FILE);
-  const dashboardPath = resolve(cwd, OUTPUT_FILE);
 
   // Validate project
   if (!existsSync(configPath)) {
@@ -525,10 +524,8 @@ export async function serve(port: number = PORT, watchMode: boolean = false) {
     process.exit(1);
   }
 
-  // Generate dashboard if needed
-  if (!existsSync(dashboardPath)) {
-    await generate();
-  }
+  // Always regenerate dashboard to ensure it's up to date
+  await generate();
 
   // Get project name from folder
   const projectName = basename(cwd).toLowerCase().replace(/[^a-z0-9-]/g, "-");
