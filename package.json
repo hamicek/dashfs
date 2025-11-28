@@ -6,20 +6,35 @@
   "bin": {
     "dashfs": "./dist/cli.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "start": "node dist/cli.js"
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "dashboard",
     "project",
     "filesystem",
     "generator",
-    "productivity"
+    "productivity",
+    "cli"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/USER/dashfs.git"
+  },
+  "homepage": "https://github.com/USER/dashfs#readme",
+  "bugs": {
+    "url": "https://github.com/USER/dashfs/issues"
+  },
   "author": "",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"

@@ -29,16 +29,25 @@ function esc(s: string): string {
 }
 
 function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
+  // Check what sections have content
+  const hasDocs = (cfg.docs ?? []).length > 0 || cfg.contract;
+  const hasRepos = (cfg.repos ?? []).length > 0;
+  const hasNotes = (cfg.notes ?? []).length > 0;
+  const hasImages = (cfg.images ?? []).length > 0;
+  const hasLinks = (cfg.links ?? []).length > 0;
+  const hasNotesApps = cfg.bearNoteUrl || cfg.obsidianUrl;
+  const hasQuickNotes = (cfg.quickNotes ?? []).length > 0;
+
   // Documents section
   const docsItems = (cfg.docs ?? [])
     .map((d) => `<a href="${esc(d.path)}">${esc(d.label)}</a>`)
     .join("");
 
   const contractItem = cfg.contract
-    ? `<a href="${esc(cfg.contract)}">Smlouva (PDF)</a>`
+    ? `<a href="${esc(cfg.contract)}">Contract (PDF)</a>`
     : "";
 
-  const docsBlock = contractItem + docsItems || "<em>Žádné dokumenty</em>";
+  const docsBlock = contractItem + docsItems;
 
   // Repos section
   const reposBlock = (cfg.repos ?? [])
@@ -47,7 +56,7 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       const vscodeUrl = `vscode://file/${absPath}`;
       return `<a href="${esc(vscodeUrl)}">${esc(r.label)}</a>`;
     })
-    .join("") || "<em>Žádné repozitáře</em>";
+    .join("");
 
   // Notes section (local markdown/text files)
   const notesBlock = (cfg.notes ?? [])
@@ -58,19 +67,19 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       }
       return `<a href="${esc(n.path)}">${esc(n.label)}</a>`;
     })
-    .join("") || "<em>Žádné poznámky</em>";
+    .join("");
 
   // Images section
   const imagesBlock = (cfg.images ?? [])
     .map((i) => `<a href="${esc(i.path)}" target="_blank">${esc(i.label)}</a>`)
-    .join("") || "<em>Žádné obrázky</em>";
+    .join("");
 
   // External links section
   const linksBlock = (cfg.links ?? [])
     .map(
       (l) => `<a href="${esc(l.url)}" target="_blank" rel="noreferrer">${esc(l.label)}</a>`
     )
-    .join("") || "<em>Žádné odkazy</em>";
+    .join("");
 
   // Notes apps section
   const notesApps: string[] = [];
@@ -80,12 +89,10 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
   if (cfg.obsidianUrl) {
     notesApps.push(`<a href="${esc(cfg.obsidianUrl)}">Obsidian</a>`);
   }
-  const notesAppsBlock = notesApps.join("") || "<em>Žádné propojené aplikace</em>";
+  const notesAppsBlock = notesApps.join("");
 
   // Quick notes section
-  const quickNotesBlock = (cfg.quickNotes ?? []).length > 0
-    ? `<ul>${(cfg.quickNotes ?? []).map((n) => `<li>${esc(n)}</li>`).join("")}</ul>`
-    : "<em>Žádné poznámky</em>";
+  const quickNotesBlock = `<ul>${(cfg.quickNotes ?? []).map((n) => `<li>${esc(n)}</li>`).join("")}</ul>`;
 
   return `<!doctype html>
 <html lang="cs">
@@ -315,52 +322,52 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
   ${cfg.description ? `<p class="description">${esc(cfg.description)}</p>` : ""}
 
   <div class="grid">
-    <section class="card">
-      <h2>Dokumenty</h2>
+    ${hasDocs ? `<section class="card">
+      <h2>Documents</h2>
       <div class="links">
         ${docsBlock}
       </div>
-    </section>
+    </section>` : ""}
 
-    <section class="card">
-      <h2>Repozitáře</h2>
+    ${hasRepos ? `<section class="card">
+      <h2>Repositories</h2>
       <div class="links">
         ${reposBlock}
       </div>
-    </section>
+    </section>` : ""}
 
-    <section class="card">
-      <h2>Poznámky</h2>
+    ${hasNotes ? `<section class="card">
+      <h2>Notes</h2>
       <div class="links">
         ${notesBlock}
       </div>
-    </section>
+    </section>` : ""}
 
-    <section class="card">
-      <h2>Design / Obrázky</h2>
+    ${hasImages ? `<section class="card">
+      <h2>Design / Images</h2>
       <div class="links">
         ${imagesBlock}
       </div>
-    </section>
+    </section>` : ""}
 
-    <section class="card">
-      <h2>Externí odkazy</h2>
+    ${hasLinks ? `<section class="card">
+      <h2>External Links</h2>
       <div class="links">
         ${linksBlock}
       </div>
-    </section>
+    </section>` : ""}
 
-    <section class="card">
-      <h2>Poznámkové aplikace</h2>
+    ${hasNotesApps ? `<section class="card">
+      <h2>Note Apps</h2>
       <div class="links">
         ${notesAppsBlock}
       </div>
-    </section>
+    </section>` : ""}
 
-    <section class="card">
-      <h2>Rychlé poznámky</h2>
+    ${hasQuickNotes ? `<section class="card">
+      <h2>Quick Notes</h2>
       ${quickNotesBlock}
-    </section>
+    </section>` : ""}
   </div>
 
   <!-- MD Viewer Modal -->
