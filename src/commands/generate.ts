@@ -90,15 +90,31 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
   }
   const notesAppsBlock = notesApps.join("");
 
-  // Quick notes section (editable)
+  // Quick notes section (editable, with TODO checkbox support)
   const quickNotesItems = (cfg.quickNotes ?? [])
-    .map((n, i) => `<div class="quick-note-item">
+    .map((n, i) => {
+      // Check if note is a TODO item (starts with [ ] or [x])
+      const todoMatch = n.match(/^\[([ x])\]\s*(.*)/);
+      if (todoMatch) {
+        const isChecked = todoMatch[1] === "x";
+        const text = todoMatch[2];
+        return `<div class="quick-note-item todo-item${isChecked ? " completed" : ""}">
+      <input type="checkbox" class="todo-checkbox" data-note-index="${i}" ${isChecked ? "checked" : ""}>
+      <span class="quick-note-text editable" contenteditable="true" data-note-index="${i}">${esc(text)}</span>
+      <button class="quick-note-delete" data-note-index="${i}" title="Delete note">&times;</button>
+    </div>`;
+      }
+      return `<div class="quick-note-item">
       <span class="quick-note-text editable" contenteditable="true" data-note-index="${i}">${esc(n)}</span>
       <button class="quick-note-delete" data-note-index="${i}" title="Delete note">&times;</button>
-    </div>`)
+    </div>`;
+    })
     .join("");
   const quickNotesBlock = `<div class="quick-notes-list" id="quickNotesList">${quickNotesItems}</div>
-    <button class="add-note-btn" id="addNoteBtn">+ Add note</button>`;
+    <div class="add-note-actions">
+      <button class="add-note-btn" id="addNoteBtn">+ Add note</button>
+      <button class="add-note-btn" id="addTodoBtn">+ Add TODO</button>
+    </div>`;
 
   return `<!doctype html>
 <html lang="cs">
@@ -415,6 +431,19 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       background: #ef4444;
       color: white;
     }
+    /* TODO checkbox styles */
+    .todo-checkbox {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      cursor: pointer;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+    }
+    .todo-item.completed .quick-note-text {
+      text-decoration: line-through;
+      color: var(--text-subtle);
+    }
     .add-note-btn {
       display: inline-flex;
       align-items: center;
@@ -433,6 +462,14 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       background: var(--link-hover);
       border-color: var(--link-border-hover);
       color: var(--text);
+    }
+    .add-note-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .add-note-actions .add-note-btn {
+      margin-top: 0;
     }
     .save-indicator {
       position: fixed;
@@ -709,8 +746,14 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
           const index = parseInt(el.dataset.noteIndex);
           const value = el.textContent.trim();
           if (!currentConfig.quickNotes) currentConfig.quickNotes = [];
-          if (currentConfig.quickNotes[index] !== value) {
-            currentConfig.quickNotes[index] = value;
+
+          // Check if this is a TODO item (preserve checkbox prefix)
+          const currentNote = currentConfig.quickNotes[index] || '';
+          const todoMatch = currentNote.match(/^\\[([ x])\\]\\s*/);
+          const newValue = todoMatch ? todoMatch[0] + value : value;
+
+          if (currentConfig.quickNotes[index] !== newValue) {
+            currentConfig.quickNotes[index] = newValue;
             debouncedSave();
           }
         });
@@ -720,6 +763,30 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
             e.preventDefault();
             el.blur();
           }
+        });
+      });
+
+      // Handle TODO checkbox toggle
+      document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+          if (!currentConfig) return;
+          const index = parseInt(checkbox.dataset.noteIndex);
+          if (!currentConfig.quickNotes) return;
+
+          const currentNote = currentConfig.quickNotes[index] || '';
+          const isChecked = checkbox.checked;
+
+          // Toggle the checkbox state in the note text
+          if (isChecked) {
+            currentConfig.quickNotes[index] = currentNote.replace(/^\\[ \\]/, '[x]');
+          } else {
+            currentConfig.quickNotes[index] = currentNote.replace(/^\\[x\\]/, '[ ]');
+          }
+
+          // Toggle visual state
+          checkbox.closest('.todo-item').classList.toggle('completed', isChecked);
+
+          saveConfig();
         });
       });
 
@@ -742,6 +809,18 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
         if (!currentConfig) return;
         if (!currentConfig.quickNotes) currentConfig.quickNotes = [];
         currentConfig.quickNotes.push('New note...');
+        saveConfig();
+        // Re-render will happen via live reload
+      });
+    }
+
+    // Add new TODO
+    const addTodoBtn = document.getElementById('addTodoBtn');
+    if (addTodoBtn) {
+      addTodoBtn.addEventListener('click', () => {
+        if (!currentConfig) return;
+        if (!currentConfig.quickNotes) currentConfig.quickNotes = [];
+        currentConfig.quickNotes.push('[ ] New task...');
         saveConfig();
         // Re-render will happen via live reload
       });
