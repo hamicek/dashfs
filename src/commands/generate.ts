@@ -99,7 +99,44 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
 <head>
   <meta charset="utf-8" />
   <title>${esc(cfg.title)}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232563eb'/><path d='M25 30h50M25 50h35M25 70h45' stroke='white' stroke-width='8' stroke-linecap='round'/></svg>">
   <style>
+    :root {
+      --bg: #f5f5f7;
+      --text: #111827;
+      --text-muted: #4b5563;
+      --text-subtle: #6b7280;
+      --card-bg: #ffffff;
+      --card-border: #e5e7eb;
+      --card-shadow: rgba(0,0,0,0.08);
+      --link-bg: #f9fafb;
+      --link-hover: #e5e7eb;
+      --link-border-hover: #d1d5db;
+      --code-bg: #f3f4f6;
+      --pre-bg: #1f2937;
+      --pre-text: #f9fafb;
+      --table-header: #f9fafb;
+      --accent: #2563eb;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111827;
+        --text: #f9fafb;
+        --text-muted: #9ca3af;
+        --text-subtle: #6b7280;
+        --card-bg: #1f2937;
+        --card-border: #374151;
+        --card-shadow: rgba(0,0,0,0.3);
+        --link-bg: #374151;
+        --link-hover: #4b5563;
+        --link-border-hover: #6b7280;
+        --code-bg: #374151;
+        --pre-bg: #0f172a;
+        --pre-text: #f9fafb;
+        --table-header: #374151;
+        --accent: #3b82f6;
+      }
+    }
     * {
       box-sizing: border-box;
     }
@@ -107,8 +144,8 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
       padding: 24px;
-      background: #f5f5f7;
-      color: #111827;
+      background: var(--bg);
+      color: var(--text);
       line-height: 1.5;
     }
     h1 {
@@ -119,7 +156,7 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
     p.description {
       margin-top: 0;
       margin-bottom: 24px;
-      color: #4b5563;
+      color: var(--text-muted);
     }
     .grid {
       display: grid;
@@ -127,11 +164,11 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       gap: 16px;
     }
     .card {
-      background: #ffffff;
+      background: var(--card-bg);
       border-radius: 12px;
       padding: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 3px var(--card-shadow);
+      border: 1px solid var(--card-border);
     }
     .card h2 {
       margin-top: 0;
@@ -140,7 +177,7 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: #6b7280;
+      color: var(--text-subtle);
     }
     .links {
       display: flex;
@@ -154,15 +191,15 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       font-size: 0.875rem;
       padding: 6px 12px;
       border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb;
-      color: #111827;
+      border: 1px solid var(--card-border);
+      background: var(--link-bg);
+      color: var(--text);
       transition: all 0.15s ease;
       cursor: pointer;
     }
     .links a:hover {
-      background: #e5e7eb;
-      border-color: #d1d5db;
+      background: var(--link-hover);
+      border-color: var(--link-border-hover);
     }
     ul {
       padding-left: 20px;
@@ -172,7 +209,7 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       margin-bottom: 4px;
     }
     em {
-      color: #9ca3af;
+      color: var(--text-subtle);
     }
 
     /* MD Viewer Modal */
@@ -193,7 +230,7 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       display: flex;
     }
     .md-modal-content {
-      background: #ffffff;
+      background: var(--card-bg);
       border-radius: 16px;
       max-width: 800px;
       width: 100%;
@@ -208,7 +245,7 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       justify-content: space-between;
       align-items: center;
       padding: 16px 20px;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--card-border);
     }
     .md-modal-header h3 {
       margin: 0;
@@ -220,13 +257,13 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       border: none;
       font-size: 1.5rem;
       cursor: pointer;
-      color: #6b7280;
+      color: var(--text-subtle);
       padding: 4px 8px;
       border-radius: 6px;
     }
     .md-modal-close:hover {
-      background: #f3f4f6;
-      color: #111827;
+      background: var(--link-bg);
+      color: var(--text);
     }
     .md-modal-body {
       padding: 20px;
@@ -244,23 +281,23 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       font-weight: 600;
       line-height: 1.3;
     }
-    .md-content h1 { font-size: 1.75rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.3em; }
-    .md-content h2 { font-size: 1.5rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.3em; }
+    .md-content h1 { font-size: 1.75rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.3em; }
+    .md-content h2 { font-size: 1.5rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.3em; }
     .md-content h3 { font-size: 1.25rem; }
     .md-content h4 { font-size: 1rem; }
     .md-content p { margin: 1em 0; }
     .md-content ul, .md-content ol { margin: 1em 0; padding-left: 2em; }
     .md-content li { margin: 0.25em 0; }
     .md-content code {
-      background: #f3f4f6;
+      background: var(--code-bg);
       padding: 0.2em 0.4em;
       border-radius: 4px;
       font-size: 0.9em;
       font-family: ui-monospace, "SF Mono", Menlo, Monaco, monospace;
     }
     .md-content pre {
-      background: #1f2937;
-      color: #f9fafb;
+      background: var(--pre-bg);
+      color: var(--pre-text);
       padding: 16px;
       border-radius: 8px;
       overflow-x: auto;
@@ -272,13 +309,13 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       color: inherit;
     }
     .md-content blockquote {
-      border-left: 4px solid #e5e7eb;
+      border-left: 4px solid var(--card-border);
       margin: 1em 0;
       padding-left: 1em;
-      color: #6b7280;
+      color: var(--text-muted);
     }
     .md-content a {
-      color: #2563eb;
+      color: var(--accent);
       text-decoration: none;
     }
     .md-content a:hover {
@@ -286,7 +323,7 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
     }
     .md-content hr {
       border: none;
-      border-top: 1px solid #e5e7eb;
+      border-top: 1px solid var(--card-border);
       margin: 2em 0;
     }
     .md-content img {
@@ -299,12 +336,12 @@ function generateHtml(cfg: ProjectConfig, projectRoot: string): string {
       margin: 1em 0;
     }
     .md-content th, .md-content td {
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--card-border);
       padding: 8px 12px;
       text-align: left;
     }
     .md-content th {
-      background: #f9fafb;
+      background: var(--table-header);
       font-weight: 600;
     }
 

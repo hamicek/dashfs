@@ -4,6 +4,7 @@ import { init } from "./commands/init.js";
 import { scan } from "./commands/scan.js";
 import { generate } from "./commands/generate.js";
 import { serve } from "./commands/serve.js";
+import { watch } from "./commands/watch.js";
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -18,12 +19,14 @@ Commands:
   scan      Scan folder structure and update config
   generate  Generate dashboard.html from config
   serve     Start local server and open dashboard in browser
+  watch     Watch config and auto-regenerate on changes
 
 Usage:
   dashfs init      # Create new config in current directory
   dashfs scan      # Scan and suggest additions to config
   dashfs generate  # Generate HTML dashboard
   dashfs serve     # Start server and open in browser
+  dashfs watch     # Watch and auto-regenerate
   dashfs           # Same as 'dashfs generate'
 
 Options:
@@ -90,14 +93,29 @@ Usage:
   dashfs serve [port]
 
 Starts a local HTTP server and opens dashboard in browser.
-Default port is 3000.
+Default port is 3030.
 
 Examples:
-  dashfs serve        # Start on port 3000
+  dashfs serve        # Start on port 3030
   dashfs serve 8080   # Start on port 8080
 
 This enables viewing Markdown files directly in the dashboard.
 Press Ctrl+C to stop the server.
+`);
+}
+
+function printWatchHelp() {
+  console.log(`
+dashfs watch - Watch and auto-regenerate
+
+Usage:
+  dashfs watch
+
+Watches project.config.json for changes and automatically
+regenerates dashboard.html when the config is modified.
+
+This is useful when editing the config file manually.
+Press Ctrl+C to stop watching.
 `);
 }
 
@@ -126,8 +144,14 @@ async function main() {
     if (wantsHelp) {
       printServeHelp();
     } else {
-      const port = subArg ? parseInt(subArg, 10) : 3000;
+      const port = subArg ? parseInt(subArg, 10) : 3030;
       await serve(port);
+    }
+  } else if (command === "watch") {
+    if (wantsHelp) {
+      printWatchHelp();
+    } else {
+      await watch();
     }
   } else if (!command) {
     await generate();
