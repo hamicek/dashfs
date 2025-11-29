@@ -7,6 +7,7 @@ import { serve } from "./commands/serve.js";
 import { watch } from "./commands/watch.js";
 import { ls } from "./commands/ls.js";
 import { stop } from "./commands/stop.js";
+import { clear } from "./commands/clear.js";
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -24,6 +25,7 @@ Commands:
   watch     Watch config and auto-regenerate on changes
   ls        List running projects
   stop      Stop the server
+  clear     Clear all registered projects
 
 Usage:
   dashfs init          # Create new config in current directory
@@ -33,6 +35,7 @@ Usage:
   dashfs serve -f      # Start in foreground (blocking)
   dashfs ls            # List running projects
   dashfs stop          # Stop the server
+  dashfs clear         # Clear all registered projects
   dashfs watch         # Watch and auto-regenerate (no server)
   dashfs               # Same as 'dashfs generate'
 
@@ -165,6 +168,18 @@ Examples:
 `);
 }
 
+function printClearHelp() {
+  console.log(`
+dashfs clear - Clear all registered projects
+
+Usage:
+  dashfs clear
+
+Removes all projects from the registry.
+Does not stop the server - use 'dashfs stop' for that.
+`);
+}
+
 async function main() {
   const wantsHelp = subArg === "--help" || subArg === "-h";
 
@@ -226,6 +241,12 @@ async function main() {
       // First non-flag argument is project name
       const projectName = stopArgs.find(a => !a.startsWith("-"));
       await stop(projectName, force);
+    }
+  } else if (command === "clear") {
+    if (wantsHelp) {
+      printClearHelp();
+    } else {
+      await clear();
     }
   } else if (!command) {
     await generate();
