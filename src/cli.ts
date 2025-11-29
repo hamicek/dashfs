@@ -29,8 +29,7 @@ Usage:
   dashfs init          # Create new config in current directory
   dashfs scan          # Scan and suggest additions to config
   dashfs generate      # Generate HTML dashboard
-  dashfs serve         # Start server in background
-  dashfs serve -w      # Start with watch mode (auto-regenerate)
+  dashfs serve         # Start server (background, watch mode)
   dashfs serve -f      # Start in foreground (blocking)
   dashfs ls            # List running projects
   dashfs stop          # Stop the server
@@ -101,17 +100,16 @@ Usage:
   dashfs serve [options]
 
 Starts a local HTTP server and opens dashboard in browser.
-By default, runs in background (daemon mode).
+Runs in background with watch mode enabled by default.
 
 Options:
-  --watch, -w       Watch config and auto-regenerate on changes
   --foreground, -f  Run in foreground (blocking, for debugging)
+  --no-watch        Disable auto-regeneration on config changes
 
 Examples:
-  dashfs serve           # Start server in background
-  dashfs serve -w        # Background with watch mode
+  dashfs serve           # Start server in background with watch mode
   dashfs serve -f        # Foreground mode (Ctrl+C to stop)
-  dashfs serve -w -f     # Foreground with watch mode
+  dashfs serve --no-watch  # Without auto-regeneration
 
 Use 'dashfs ls' to see running projects.
 Use 'dashfs stop' to stop the server.
@@ -192,14 +190,14 @@ async function main() {
     if (wantsHelp) {
       printServeHelp();
     } else {
-      // Parse serve arguments: --watch and --foreground flags
+      // Parse serve arguments: --no-watch and --foreground flags
       const serveArgs = args.slice(1);
-      let watchMode = false;
+      let watchMode = true; // Watch mode is ON by default
       let foreground = false;
 
       for (const arg of serveArgs) {
-        if (arg === "--watch" || arg === "-w") {
-          watchMode = true;
+        if (arg === "--no-watch") {
+          watchMode = false;
         } else if (arg === "--foreground" || arg === "-f") {
           foreground = true;
         }

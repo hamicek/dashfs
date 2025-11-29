@@ -78,18 +78,15 @@ Generates `dashboard.html` from your config.
 
 ### `dashfs serve`
 
-Starts a local server and opens dashboard in browser. By default runs in background (daemon mode).
+Starts a local server and opens dashboard in browser. Runs in background with watch mode enabled by default.
 
 ```bash
-dashfs serve           # Start server in background
-dashfs serve -w        # Start with watch mode (auto-regenerate on config changes)
-dashfs serve --watch   # Same as -w
+dashfs serve           # Start server (background, watch mode)
 dashfs serve -f        # Run in foreground (blocking, for debugging)
-dashfs serve --foreground  # Same as -f
-dashfs serve -w -f     # Watch mode in foreground
+dashfs serve --no-watch  # Disable auto-regeneration
 ```
 
-**Multi-project support:** Run `dashfs serve -w` in multiple project directories. All projects share a single server on port 3030 and can be switched via dropdown in the dashboard.
+**Multi-project support:** Run `dashfs serve` in multiple project directories. All projects share a single server on port 3030 and can be switched via dropdown in the dashboard.
 
 ### `dashfs ls`
 
@@ -179,13 +176,13 @@ DashFS uses a daemon server architecture for multi-project support:
 
 ```bash
 # Typical workflow
-cd ~/project-a && dashfs serve -w   # Starts server in background
-cd ~/project-b && dashfs serve -w   # Registers project, exits immediately
-cd ~/project-c && dashfs serve -w   # Registers project, exits immediately
+cd ~/project-a && dashfs serve   # Starts server in background
+cd ~/project-b && dashfs serve   # Registers project, exits immediately
+cd ~/project-c && dashfs serve   # Registers project, exits immediately
 
-dashfs ls                            # See all running projects
-dashfs stop project-b                # Unregister one project
-dashfs stop                          # Stop entire server
+dashfs ls                        # See all running projects
+dashfs stop project-b            # Unregister one project
+dashfs stop                      # Stop entire server
 ```
 
 ## Why DashFS?

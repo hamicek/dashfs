@@ -567,7 +567,7 @@ function isServerRunning(): Promise<boolean> {
   });
 }
 
-export async function serve(watchMode: boolean = false, foreground: boolean = false) {
+export async function serve(watchMode: boolean = true, foreground: boolean = false) {
   const cwd = process.cwd();
   const configPath = resolve(cwd, CONFIG_FILE);
 
