@@ -1,10 +1,11 @@
 import { createServer, request as httpRequest, IncomingMessage, ServerResponse } from "http";
 import { readFileSync, writeFileSync, existsSync, statSync, watch as fsWatch } from "fs";
 import { resolve, extname, basename } from "path";
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import { CONFIG_FILE, OUTPUT_FILE, ProjectConfig, ThemeType } from "../types.js";
 import { generate } from "./generate/index.js";
 import { registerProject, unregisterProject, getRegistry, getProjectByName } from "../registry.js";
+import { savePid, removePid, getServerStatus, getLogFile } from "../daemon.js";
 
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -532,20 +533,27 @@ async function startMasterServer(): Promise<void> {
   });
 
   serverInstance.listen(PORT, () => {
+    // Save PID for daemon management
+    savePid(process.pid);
     console.log(`🚀 DashFS master server running at http://localhost:${PORT}`);
+    console.log(`   PID: ${process.pid}`);
     console.log(`   Press Ctrl+C to stop\n`);
   });
 
   // Handle shutdown
-  process.on("SIGINT", () => {
-    console.log("\n👋 Server stopped");
+  const shutdown = (signal: string) => {
+    console.log(`\n👋 Server stopped (${signal})`);
     // Close all watchers
     for (const watcher of watchers.values()) {
       watcher.close();
     }
     serverInstance?.close();
+    removePid();
     process.exit(0);
-  });
+  };
+
+  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
 }
 
 function isServerRunning(): Promise<boolean> {
@@ -559,7 +567,7 @@ function isServerRunning(): Promise<boolean> {
   });
 }
 
-export async function serve(port: number = PORT, watchMode: boolean = false) {
+export async function serve(watchMode: boolean = false, foreground: boolean = false) {
   const cwd = process.cwd();
   const configPath = resolve(cwd, CONFIG_FILE);
 
@@ -589,10 +597,10 @@ export async function serve(port: number = PORT, watchMode: boolean = false) {
 
   // Check if master server is already running
   const serverRunning = await isServerRunning();
+  const url = `http://localhost:${PORT}/${projectName}/`;
 
   if (serverRunning) {
     // Server already running, just open browser to this project
-    const url = `http://localhost:${PORT}/${projectName}/`;
     console.log(`🔗 Opening ${url}`);
 
     const openCommand = process.platform === "darwin"
@@ -605,25 +613,63 @@ export async function serve(port: number = PORT, watchMode: boolean = false) {
     if (watchMode) {
       console.log(`👀 Watch mode enabled (master server handles watching)`);
     }
-    console.log(`✅ Project registered. Use the dashboard to close it.\n`);
+    console.log(`✅ Project registered. Use 'dashfs ls' to see running projects.\n`);
     // Exit immediately - master server handles everything
     process.exit(0);
   } else {
-    // Start master server
-    const url = `http://localhost:${PORT}/${projectName}/`;
+    // Need to start master server
+    if (foreground) {
+      // Run in foreground (blocking)
+      await startMasterServer();
 
-    await startMasterServer();
+      // Open browser
+      const openCommand = process.platform === "darwin"
+        ? "open"
+        : process.platform === "win32"
+          ? "start"
+          : "xdg-open";
+      exec(`${openCommand} ${url}`);
 
-    // Open browser
-    const openCommand = process.platform === "darwin"
-      ? "open"
-      : process.platform === "win32"
-        ? "start"
-        : "xdg-open";
-    exec(`${openCommand} ${url}`);
+      if (watchMode) {
+        console.log(`👀 Watching for config changes...`);
+      }
+    } else {
+      // Run as daemon (background)
+      const logFile = getLogFile();
 
-    if (watchMode) {
-      console.log(`👀 Watching for config changes...`);
+      // Spawn detached process
+      const child = spawn(process.execPath, [process.argv[1], "serve", "--foreground", watchMode ? "-w" : ""].filter(Boolean), {
+        cwd,
+        detached: true,
+        stdio: ["ignore", "ignore", "ignore"],
+        env: { ...process.env, DASHFS_DAEMON: "1" },
+      });
+
+      child.unref();
+
+      // Wait a moment for server to start
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Check if server started successfully
+      const status = await getServerStatus();
+      if (status.running) {
+        console.log(`🚀 Server started in background (PID: ${status.pid})`);
+        console.log(`   URL: http://localhost:${PORT}/`);
+        console.log(`   Log: ${logFile}`);
+        console.log(`\n   Use 'dashfs ls' to see projects`);
+        console.log(`   Use 'dashfs stop' to stop the server\n`);
+
+        // Open browser
+        const openCommand = process.platform === "darwin"
+          ? "open"
+          : process.platform === "win32"
+            ? "start"
+            : "xdg-open";
+        exec(`${openCommand} ${url}`);
+      } else {
+        console.error(`❌ Failed to start server. Try 'dashfs serve --foreground' to see errors.`);
+        process.exit(1);
+      }
     }
   }
 }

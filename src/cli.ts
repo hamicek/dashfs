@@ -5,6 +5,8 @@ import { scan } from "./commands/scan.js";
 import { generate } from "./commands/generate/index.js";
 import { serve } from "./commands/serve.js";
 import { watch } from "./commands/watch.js";
+import { ls } from "./commands/ls.js";
+import { stop } from "./commands/stop.js";
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -20,14 +22,20 @@ Commands:
   generate  Generate dashboard.html from config
   serve     Start local server and open dashboard in browser
   watch     Watch config and auto-regenerate on changes
+  ls        List running projects
+  stop      Stop the server
 
 Usage:
-  dashfs init      # Create new config in current directory
-  dashfs scan      # Scan and suggest additions to config
-  dashfs generate  # Generate HTML dashboard
-  dashfs serve     # Start server and open in browser
-  dashfs watch     # Watch and auto-regenerate
-  dashfs           # Same as 'dashfs generate'
+  dashfs init          # Create new config in current directory
+  dashfs scan          # Scan and suggest additions to config
+  dashfs generate      # Generate HTML dashboard
+  dashfs serve         # Start server in background
+  dashfs serve -w      # Start with watch mode (auto-regenerate)
+  dashfs serve -f      # Start in foreground (blocking)
+  dashfs ls            # List running projects
+  dashfs stop          # Stop the server
+  dashfs watch         # Watch and auto-regenerate (no server)
+  dashfs               # Same as 'dashfs generate'
 
 Options:
   --help, -h    Show this help
@@ -90,22 +98,23 @@ function printServeHelp() {
 dashfs serve - Start local server
 
 Usage:
-  dashfs serve [port] [--watch]
+  dashfs serve [options]
 
 Starts a local HTTP server and opens dashboard in browser.
-Default port is 3030.
+By default, runs in background (daemon mode).
 
 Options:
-  --watch, -w   Watch config and auto-regenerate on changes
+  --watch, -w       Watch config and auto-regenerate on changes
+  --foreground, -f  Run in foreground (blocking, for debugging)
 
 Examples:
-  dashfs serve           # Start on port 3030
-  dashfs serve 8080      # Start on port 8080
-  dashfs serve --watch   # Start with auto-regeneration
-  dashfs serve 8080 -w   # Custom port with watch mode
+  dashfs serve           # Start server in background
+  dashfs serve -w        # Background with watch mode
+  dashfs serve -f        # Foreground mode (Ctrl+C to stop)
+  dashfs serve -w -f     # Foreground with watch mode
 
-This enables viewing Markdown files directly in the dashboard.
-Press Ctrl+C to stop the server.
+Use 'dashfs ls' to see running projects.
+Use 'dashfs stop' to stop the server.
 `);
 }
 
@@ -121,6 +130,40 @@ regenerates dashboard.html when the config is modified.
 
 This is useful when editing the config file manually.
 Press Ctrl+C to stop watching.
+`);
+}
+
+function printLsHelp() {
+  console.log(`
+dashfs ls - List running projects
+
+Usage:
+  dashfs ls
+  dashfs list
+
+Shows the status of the DashFS server and all registered projects.
+Displays URLs for quick access to each project dashboard.
+`);
+}
+
+function printStopHelp() {
+  console.log(`
+dashfs stop - Stop server or unregister a project
+
+Usage:
+  dashfs stop [project] [options]
+
+Without arguments, stops the entire server.
+With a project name, unregisters just that project.
+
+Options:
+  --force, -f   Force kill the server (SIGKILL instead of SIGTERM)
+
+Examples:
+  dashfs stop                  # Stop entire server
+  dashfs stop freelance        # Unregister project "freelance"
+  dashfs stop personal-app     # Unregister by name
+  dashfs stop --force          # Force kill server
 `);
 }
 
@@ -149,26 +192,42 @@ async function main() {
     if (wantsHelp) {
       printServeHelp();
     } else {
-      // Parse serve arguments: port and --watch flag
+      // Parse serve arguments: --watch and --foreground flags
       const serveArgs = args.slice(1);
-      let port = 3030;
       let watchMode = false;
+      let foreground = false;
 
       for (const arg of serveArgs) {
         if (arg === "--watch" || arg === "-w") {
           watchMode = true;
-        } else if (!isNaN(parseInt(arg, 10))) {
-          port = parseInt(arg, 10);
+        } else if (arg === "--foreground" || arg === "-f") {
+          foreground = true;
         }
       }
 
-      await serve(port, watchMode);
+      await serve(watchMode, foreground);
     }
   } else if (command === "watch") {
     if (wantsHelp) {
       printWatchHelp();
     } else {
       await watch();
+    }
+  } else if (command === "ls" || command === "list") {
+    if (wantsHelp) {
+      printLsHelp();
+    } else {
+      await ls();
+    }
+  } else if (command === "stop") {
+    if (wantsHelp) {
+      printStopHelp();
+    } else {
+      const stopArgs = args.slice(1);
+      const force = stopArgs.includes("--force") || stopArgs.includes("-f");
+      // First non-flag argument is project name
+      const projectName = stopArgs.find(a => !a.startsWith("-"));
+      await stop(projectName, force);
     }
   } else if (!command) {
     await generate();
