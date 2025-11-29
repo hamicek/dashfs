@@ -78,15 +78,38 @@ Generates `dashboard.html` from your config.
 
 ### `dashfs serve`
 
-Starts a local server and opens dashboard in browser.
+Starts a local server and opens dashboard in browser. By default runs in background (daemon mode).
 
 ```bash
-dashfs serve           # Start on port 3030
-dashfs serve -w        # Start with live reload (auto-refresh on config changes)
+dashfs serve           # Start server in background
+dashfs serve -w        # Start with watch mode (auto-regenerate on config changes)
 dashfs serve --watch   # Same as -w
+dashfs serve -f        # Run in foreground (blocking, for debugging)
+dashfs serve --foreground  # Same as -f
+dashfs serve -w -f     # Watch mode in foreground
 ```
 
 **Multi-project support:** Run `dashfs serve -w` in multiple project directories. All projects share a single server on port 3030 and can be switched via dropdown in the dashboard.
+
+### `dashfs ls`
+
+Lists running server and registered projects.
+
+```bash
+dashfs ls              # Show server status and all projects
+dashfs list            # Same as ls
+```
+
+### `dashfs stop`
+
+Stops the server or unregisters a specific project.
+
+```bash
+dashfs stop            # Stop entire server
+dashfs stop <project>  # Unregister specific project (partial match supported)
+dashfs stop --force    # Force kill server (SIGKILL)
+dashfs stop -f         # Same as --force
+```
 
 ### `dashfs watch`
 
@@ -144,18 +167,25 @@ my-project/
 
 ## Server Architecture
 
-DashFS uses a master server architecture for multi-project support:
+DashFS uses a daemon server architecture for multi-project support:
 
+- **Background mode** – Server runs as daemon, doesn't block terminal
 - **Single port (3030)** – All projects share one server
 - **URL routing** – Each project accessible at `http://localhost:3030/project-name/`
 - **Project selector** – Switch between projects via dropdown
 - **Close button** – Unregister projects from dashboard
 - **Auto-shutdown** – Server stops when last project is closed
+- **PID management** – Server PID stored in `~/.dashfs/server.pid`
 
-```
-First terminal:    dashfs serve -w  → Starts master server
-Second terminal:   dashfs serve -w  → Registers project and exits
-Third terminal:    dashfs serve -w  → Registers project and exits
+```bash
+# Typical workflow
+cd ~/project-a && dashfs serve -w   # Starts server in background
+cd ~/project-b && dashfs serve -w   # Registers project, exits immediately
+cd ~/project-c && dashfs serve -w   # Registers project, exits immediately
+
+dashfs ls                            # See all running projects
+dashfs stop project-b                # Unregister one project
+dashfs stop                          # Stop entire server
 ```
 
 ## Why DashFS?
