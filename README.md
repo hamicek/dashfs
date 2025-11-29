@@ -19,7 +19,7 @@ Perfect for:
 - **Markdown viewer** – View .md files directly in the dashboard with syntax highlighting
 - **App URL schemes** – Support for Bear, Obsidian, and other macOS apps
 - **Dark mode** – Automatic theme based on system preference
-- **Live reload** – Auto-refresh dashboard when config changes (`--watch` mode)
+- **Live reload** – Auto-refresh dashboard when config changes (enabled by default)
 - **Multi-project server** – Single server handles multiple projects on one port
 - **No vendor lock-in** – Your data stays in JSON, dashboard is just HTML
 
@@ -44,8 +44,8 @@ cd ~/Projects/my-project
 # Scan folder and create config
 dashfs scan
 
-# Start server with live reload
-dashfs serve -w
+# Start server (runs in background with auto-reload)
+dashfs serve
 ```
 
 Or without server:
@@ -105,7 +105,14 @@ Stops the server or unregisters a specific project.
 dashfs stop            # Stop entire server
 dashfs stop <project>  # Unregister specific project (partial match supported)
 dashfs stop --force    # Force kill server (SIGKILL)
-dashfs stop -f         # Same as --force
+```
+
+### `dashfs clear`
+
+Clears all registered projects from the registry.
+
+```bash
+dashfs clear           # Remove all projects from registry
 ```
 
 ### `dashfs watch`
